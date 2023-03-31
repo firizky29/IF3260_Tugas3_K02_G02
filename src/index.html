@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="style.css" />
+    <title>3D Articulated Model</title>
+    <script src="./utils/webgl_utils.js"></script>
+    <script src="const.js"></script>
+    <script src="script.js" type="module" defer></script>
+  </head>
+  <body>
+    <div id='container'>
+      <div id="working-container">
+        <div id="upper-working-container">
+          <div id="canvas-container">
+            <canvas id="canvas" tabindex="1"></canvas>
+          </div>
+          <div id="whatnot-controller">
+            <label for="model-file-tool">Save and Load Model</label>
+            <div id="model-file-tool">
+              <button id="save-model">Save Model</button>
+              <input type="file" id="load-src" accept=".json,application/json" style="display: none" />
+              <button id="load-model" onclick="document.getElementById('load-src').click()">Load Model</button>
+            </div>
+            <div id="user-guide">
+              <button id="clear">Reset</button>
+              <button id="help">Help</button>
+            </div>
+            <div id="projection-tool">
+              <label for="projection">Proyeksi</label>
+              <select name="projection" id="projection">
+                <option value="orthographic">Orthographic</option>
+                <option value="oblique">Oblique</option>
+                <option value="perspective">Perspective</option>
+              </select>
+            </div>
+            <div id="frame-shading-texture-container">
+              <div id="current-frame">
+                Current Frame: <p id="current-frame-value"></p>
+              </div>
+              <div id="frame-tool">
+                <button id="first-frame">&lt;&lt;</button>
+                <button id="prev-frame">&lt;</button>
+                <button id="play-button">Play</button>
+                <button id="pause-button">Pause</button>
+                <button id="next-frame">&gt;</button>
+                <button id="last-frame">&gt;&gt;</button>
+              </div>
+              <div id="shading-and-texture-tool">
+                <div id="shading-tool">
+                  <label for="shading">Shading</label>
+                  <input type="checkbox" id="shading" value="shading" checked />
+                </div>
+                <div id="texture-tool">
+                  <label for="texture">Texture</label>
+                  <select name="texture" id="texture">
+                    <option value="image">Image</option>
+                    <option value="environment">Reflective</option>
+                    <option value="bump">Bump</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div id="camera-tool">
+              <p>Camera Tool</p>
+              <div id="camera-rotation-tool">
+                <label for="camera-rotate">Rotate</label>
+                <input type="range" id="camera-rotate" value="0" min="-180" max="180" step="1"/>
+              </div>
+              <div id="camera-view-tool">
+                <label for="camera-view">View</label>
+                <input type="range" id="camera-view" value="0.5" min="0" max="1" step="0.01"/>
+              </div>
+            </div>
+            <label for="animation-file-tool">Save and Load Animation</label>
+            <div id="animation-file-tool">
+              <button id="save-animation">Save Animation</button>
+              <input type="file" id="load-src" accept=".json,application/json" style="display: none" />
+              <button id="load-animation" onclick="document.getElementById('load-src').click()">Load Animation</button>
+            </div>
+          </div>
+          <div id="component-view-container">
+            <div id="component-tree">
+            </div>
+            <div id="chosen-component">
+              Current chosen component : <p id="chosen-component-name">right elbow</p>
+            </div>
+          </div>
+        </div>
+        <div id="bottom-working-container">
+          <div id="transformation-container">
+            <div id="obj-transform-tool">
+              <div id="transform-title"><h3>Object</h3></div>
+              <div id="obj-tool">
+                <div id="obj-rotation-tool">
+                  <p>Rotation : 
+                    (
+                      <output id="obj-rotation-x-value">0</output> °,
+                      <output id="obj-rotation-y-value">0</output> °,
+                      <output id="obj-rotation-z-value">0</output> °
+                    )
+                  </p>
+                  <label for="obj-rotation-x">X</label>
+                  <input type="range" id="obj-rotation-x" value="0" min="-180" max="180" step="0.1"/><br>
+                  <label for="obj-rotation-y">Y</label>
+                  <input type="range" id="obj-rotation-y" value="0" min="-180" max="180" step="0.1"/><br>
+                  <label for="obj-rotation-z">Z</label>
+                  <input type="range" id="obj-rotation-z" value="0" min="-180" max="180" step="0.1"/><br>
+                </div>
+                <div id="obj-translation-tool">
+                  <p>Translation : 
+                    (
+                      <output id="obj-translation-x-value">0</output>,
+                      <output id="obj-translation-y-value">0</output>,
+                      <output id="obj-translation-z-value">0</output>
+                    )
+                  </p>
+                  <label for="obj-translation-x">X</label>
+                  <input type="range" id="obj-translation-x" min="-1" max="1" step="0.01"/><br>
+                  <label for="obj-translation-y">Y</label>
+                  <input type="range" id="obj-translation-y" min="-1" max="1" step="0.01"/><br>
+                  <label for="obj-translation-z">Z</label>
+                  <input type="range" id="obj-translation-z" min="-1" max="1" step="0.01"/><br>
+                </div>
+                <div id="obj-scaling-tool">
+                  <p>Scaling : 
+                    (
+                    <output id="obj-scaling-x-value">1</output>x,
+                    <output id="obj-scaling-y-value">1</output>x,
+                    <output id="obj-scaling-z-value">1</output>x
+                    )
+                  </p>
+                  <label for="obj-scaling-x">X</label>
+                  <input type="range" id="obj-scaling-x" min="0.1" max="1" value="0.5" step="0.1"/><br>
+                  <label for="obj-scaling-y">Y</label>
+                  <input type="range" id="obj-scaling-y" min="0.1" max="1" value="0.5" step="0.1"/><br>
+                  <label for="obj-scaling-z">Z</label>
+                  <input type="range" id="obj-scaling-z" min="0.1" max="1" value="0.5" step="0.1"/><br>
+                </div>
+              </div>
+            </div>
+            <div id="comp-transform-tool">
+              <div id="transform-title"><h3>Component</h3></div>
+              <div id="comp-tool">
+                <div id="comp-rotation-tool">
+                  <p>Rotation : 
+                    (
+                      <output id="comp-rotation-x-value">0</output> °,
+                      <output id="comp-rotation-y-value">0</output> °,
+                      <output id="comp-rotation-z-value">0</output> °
+                    )
+                  </p>
+                  <label for="comp-rotation-x">X</label>
+                  <input type="range" id="comp-rotation-x" value="0" min="-180" max="180" step="0.1"/><br>
+                  <label for="comp-rotation-y">Y</label>
+                  <input type="range" id="comp-rotation-y" value="0" min="-180" max="180" step="0.1"/><br>
+                  <label for="comp-rotation-z">Z</label>
+                  <input type="range" id="comp-rotation-z" value="0" min="-180" max="180" step="0.1"/><br>
+                </div>
+                <div id="comp-translation-tool">
+                  <p>Translation : 
+                    (
+                      <output id="comp-translation-x-value">0</output>,
+                      <output id="comp-translation-y-value">0</output>,
+                      <output id="comp-translation-z-value">0</output>
+                    )
+                  </p>
+                  <label for="comp-translation-x">X</label>
+                  <input type="range" id="comp-translation-x" min="-1" max="1" step="0.01"/><br>
+                  <label for="comp-translation-y">Y</label>
+                  <input type="range" id="comp-translation-y" min="-1" max="1" step="0.01"/><br>
+                  <label for="comp-translation-z">Z</label>
+                  <input type="range" id="comp-translation-z" min="-1" max="1" step="0.01"/><br>
+                </div>
+                <div id="comp-scaling-tool">
+                  <p>Scaling : 
+                    (
+                    <output id="comp-scaling-x-value">1</output>x,
+                    <output id="comp-scaling-y-value">1</output>x,
+                    <output id="comp-scaling-z-value">1</output>x
+                    )
+                  </p>
+                  <label for="comp-scaling-x">X</label>
+                  <input type="range" id="comp-scaling-x" min="0.1" max="1" value="0.5" step="0.1"/><br>
+                  <label for="comp-scaling-y">Y</label>
+                  <input type="range" id="comp-scaling-y" min="0.1" max="1" value="0.5" step="0.1"/><br>
+                  <label for="comp-scaling-z">Z</label>
+                  <input type="range" id="comp-scaling-z" min="0.1" max="1" value="0.5" step="0.1"/><br>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="help-container">
+        <div id="help-content">
+          <span id="close">&times;</span>
+          <h2>ingfo</h2>
+          <ul>
+            <li>lorem</li>
+            <li>ipsum</li>
+            <li>doloromet</li>
+          </ul>
+          <h2>ingfo</h2>
+          <ul>
+            <li>lorem</li>
+            <li>ipsum</li>
+            <li>doloromet</li>
+          </ul>
+          <h1>KONTRIBUTOR</h1>
+            <h3>13519220 - Leo Cardhio Sih Pratama</h3>
+            <h3>13520063 - Louis Yanggara</h3>
+            <h3>13520092 - Vieri Mansyl</h3>
+            <h3>13520095 - Firizky Ardiansyah</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
