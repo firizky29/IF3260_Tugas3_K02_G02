@@ -50,6 +50,7 @@ canvas {
   align-items: center;
   font-size: small;
   font-weight: bold;
+  overflow: hidden;
 }
 
 #model-file-tool {

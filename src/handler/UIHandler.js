@@ -39,7 +39,7 @@ const UIHandler = {
 			const value = event.target.checked;
 			handlerFn(event, value);
 		});
-	}
+	},
 };
 
 export default UIHandler;

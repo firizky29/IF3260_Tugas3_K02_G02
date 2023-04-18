@@ -4,6 +4,7 @@ import Converter from '../utils/Converter.js';
 import MatrixOp from '../utils//MatrixOp.js';
 import Matrix from '../utils/Matrix.js';
 import { Transform, TransformationMatrix4D } from '../utils/Transformation4D.js';
+import Render from '../utils/render.js';
 
 export default class WebGLHandler {
 	constructor(canvas) {
@@ -31,12 +32,10 @@ export default class WebGLHandler {
 			},
 		];
 
-
-
-
 		this._glComponent.program = this._createProgram(shadersConfig);
 
 		this._createBuffers();
+		this._drawCounter = 0;
 
 
 		this._gl.enable(this._gl.DEPTH_TEST); // enabled by default, but let's be SURE.
@@ -44,6 +43,51 @@ export default class WebGLHandler {
 		this._gl.useProgram(this._glComponent.program);
 		return this;
 	}
+
+	setModel(model){
+		
+		// console.log(num_indices)
+
+		let glVertices = [];
+		let glColors = [];
+		let glNormals = [];
+		this._setPrimitives(glVertices, glColors, glNormals, model);
+
+		this.setVertices(glVertices);
+		this.setColors(glColors);
+		this.setNormals(glNormals);
+
+		// console.log(glVertices);
+
+		return this;
+	}
+
+	_setPrimitives(glVertices, glColors, glNormals, model) {
+		let object = model.object;
+		let vertices = object.vertices;
+		let colors = object.colors;
+		let indices = object.indices;
+
+		for(let i = 0; i<object.num_indices; i++){
+			let vertex_idx = indices[i];
+
+			let corners = [];
+			corners.push(vertices[vertex_idx[0]])
+			corners.push(vertices[vertex_idx[1]])
+			corners.push(vertices[vertex_idx[2]])
+			corners.push(vertices[vertex_idx[3]])
+			let color_idx = i % colors.length;
+
+			// console.log(corners)
+			Render.rectangle(glVertices, glColors, glNormals, corners, colors[color_idx])
+			this.drawCounter += 6;
+		}
+
+		for(let i = 0; i<model.children.length; i++){
+			this._setPrimitives(glVertices, glColors, glNormals, model.children[i]);
+		}
+	}
+
 
 	setVertices(vertices) {
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.vertexBuffer);
@@ -216,14 +260,14 @@ export default class WebGLHandler {
 		);
 
 
-		matrix = Transform.translate(matrix, ...state.translation);
-		matrix = Transform.xRotate(matrix, state.rotation[0]);
-		matrix = Transform.yRotate(matrix, state.rotation[1]);
-		matrix = Transform.zRotate(matrix, state.rotation[2]);
-		matrix = Transform.xRotate(matrix, state.animation_rotation[0]);
-		matrix = Transform.yRotate(matrix, state.animation_rotation[1]);
-		matrix = Transform.zRotate(matrix, state.animation_rotation[2]);
-		matrix = Transform.scale(matrix, ...state.scale);
+		matrix = Transform.translate(matrix, ...state.model.translation);
+		matrix = Transform.xRotate(matrix, state.model.rotation[0]);
+		matrix = Transform.yRotate(matrix, state.model.rotation[1]);
+		matrix = Transform.zRotate(matrix, state.model.rotation[2]);
+		// matrix = Transform.xRotate(matrix, state.model.animation_rotation[0]);
+		// matrix = Transform.yRotate(matrix, state.model.animation_rotation[1]);
+		// matrix = Transform.zRotate(matrix, state.model.animation_rotation[2]);
+		matrix = Transform.scale(matrix, ...state.model.scale);
 		let projectionMatrix = TransformationMatrix4D.projection(
 			state.projectionType,
 			state.obliqueTetha,

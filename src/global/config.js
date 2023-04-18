@@ -26,7 +26,7 @@ const CONFIG = {
   
               vec3 ambientLight = vec3(0.5, 0.5, 0.5);
               vec3 diffuseColor = vec3(1, 1, 1);
-              vec3 lightPosition = normalize(vec3(0.5, 1, -1));
+              vec3 lightPosition = normalize(vec3(0.5, 0.5, 1));
   
               vec4 transformedNormal = normalMat * a_normal;
   
