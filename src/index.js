@@ -896,7 +896,7 @@ let state = {
     fudgeFactor: 0,
     obliqueTetha: 0,
     obliquePhi: 0,
-    cameraRadius: -1.3,
+    cameraRadius: 0.5,
     cameraRotation: Converter.degToRad(0),
     animation: false,
 };
@@ -932,8 +932,9 @@ const eventHandler = {
         };
     },
 
-    openModel() {
+    loadModel() {
         return (event) => {
+            console.log('load model');
             var input = document.createElement('input');
             input.type = 'file';
             input.setAttribute('accept', 'application/json, .txt');
@@ -953,8 +954,6 @@ const eventHandler = {
                     // set all to default
                     state.model = content;
                     renderSettings.drawCounter = content.vertices.length;
-                    const toDefault = document.querySelector('button#toDefault');
-                    toDefault.click();
 
                     webgl.destroy();
                     webgl = new WebGLHandler(document.querySelector('canvas')).init();
@@ -1113,29 +1112,31 @@ UIHandler.initSlider('#obj-scaling-z', {
     handlerFn: eventHandler.updateScale(2),
 });
 
-// UIHandler.initButton('#model', {
-//   handlerFn: eventHandler.openModel(),
-// });
 
 UIHandler.initRadio('#projection', {
-  initialValue: state.projectionType,
-  handlerFn: eventHandler.updateProjectionType(),
+    initialValue: state.projectionType,
+    handlerFn: eventHandler.updateProjectionType(),
 });
 
-// UIHandler.initCheckbox('#shading', {
-//   initialValue: state.useLighting,
-//   handlerFn: eventHandler.updateShadingState(),
-// });
+UIHandler.initButton('#load-model', {
+  handlerFn: eventHandler.loadModel(),
+});
 
-// UIHandler.initSlider('#cameraRadius', {
-//   initialValue: state.cameraRadius,
-//   handlerFn: eventHandler.updateCameraRadius(),
-// });
 
-// UIHandler.initSlider('#cameraRotation', {
-//   initialValue: state.cameraRotation,
-//   handlerFn: eventHandler.updateCameraRotation(),
-// });
+UIHandler.initCheckbox('#shading', {
+  initialValue: state.useLighting,
+  handlerFn: eventHandler.updateShadingState(),
+});
+
+UIHandler.initSlider('#camera-view', {
+  initialValue: state.cameraRadius,
+  handlerFn: eventHandler.updateCameraRadius(),
+});
+
+UIHandler.initSlider('#camera-rotate', {
+  initialValue: state.cameraRotation,
+  handlerFn: eventHandler.updateCameraRotation(),
+});
 
 // UIHandler.initButton('button#toDefault', {
 //   handlerFn: eventHandler.toDefaultButtonHandler(),
@@ -1148,31 +1149,31 @@ webgl
     .setNormals(state.model.normals)
     .render(renderSettings, state);
 
-const saveToJSON = () => {
-    let { vertices, colors, normals } = state.model;
+// const saveToJSON = () => {
+//     let { vertices, colors, normals } = state.model;
 
-    const json = JSON.stringify({ vertices, colors, normals });
-    const data = new Blob([json], { type: 'text/plain' });
-    const textFile = window.URL.createObjectURL(data);
-    const link = document.createElement('a');
-    link.setAttribute('download', 'shapes.json');
-    link.href = textFile;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-};
+//     const json = JSON.stringify({ vertices, colors, normals });
+//     const data = new Blob([json], { type: 'text/plain' });
+//     const textFile = window.URL.createObjectURL(data);
+//     const link = document.createElement('a');
+//     link.setAttribute('download', 'shapes.json');
+//     link.href = textFile;
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+// };
 // document.getElementById('save').addEventListener('click', saveToJSON);
 
-const startAnimation = () => {
-    state.animation = true;
-    webgl.clearBuffer().renderAnimation(renderSettings, state);
-};
+// const startAnimation = () => {
+//     state.animation = true;
+//     webgl.clearBuffer().renderAnimation(renderSettings, state);
+// };
 // document.getElementById('animate').addEventListener('click', startAnimation);
 
-const stopAnimation = () => {
-    state.animation = false;
-    webgl.clearBuffer().renderAnimation(renderSettings, state);
-};
+// const stopAnimation = () => {
+//     state.animation = false;
+//     webgl.clearBuffer().renderAnimation(renderSettings, state);
+// };
 
 // document
 //   .getElementById('stop_animate')

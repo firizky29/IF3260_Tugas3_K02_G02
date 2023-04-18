@@ -18,14 +18,18 @@
     <div id="working-container">
       <div id="upper-working-container">
         <div id="canvas-container">
-          <canvas id="canvas" tabindex="1"></canvas>
+          <canvas id="canvas" tabindex="1" width="350" height="350"></canvas>
         </div>
         <div id="whatnot-controller">
           <label for="model-file-tool">Save and Load Model</label>
           <div id="model-file-tool">
             <button id="save-model">Save Model</button>
-            <input type="file" id="load-src" accept=".json,application/json" style="display: none" />
-            <button id="load-model" onclick="document.getElementById('load-src').click()">Load Model</button>
+            <!-- <input type="file" id="load-src" accept=".json,application/json" style="display: none" /> -->
+            <!-- onclick="document.getElementById('load-src').click()" -->
+            <button id="load-model" 
+            >
+              Load Model
+            </button>
           </div>
           <div id="user-guide">
             <button id="clear">Reset</button>
