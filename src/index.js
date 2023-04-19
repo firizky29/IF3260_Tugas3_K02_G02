@@ -1,5 +1,7 @@
-
+// import AnimationBuilder from "./builder/AnimationBuilder.js";
 let currentNodeCount = 0;
+
+
 // to be deleted
 const cubeModel = {
     "num_vertices": 8,
@@ -65,6 +67,8 @@ const cubeModel2 = {
 
 
 let webgl = await new WebGLHandler(document.querySelector('canvas')).init();
+
+let builder = new AnimationBuilder(webgl);
 
 let currentModel = {
     object: cubeModel,
@@ -283,6 +287,30 @@ const eventHandler = {
         }
     },
 
+    saveFrame() {
+        return (event) => {
+            console.log("state sebelum save", state)
+            builder.addState(state.model);
+            console.log("state setelah save", state)
+            console.log('frame saved');
+        }
+    },
+
+    playButton(){
+        return (event) => {
+            console.log("state sebelum play", state)
+            builder.setIsPlaying(true);
+            builder.playFrames(state);
+        }
+    },
+
+    pauseButton(){
+        return (event) => {
+            builder.setIsPlaying(false);
+        }
+    }
+
+
     // toDefaultButtonHandler() {
     //     return (event) => {
     //         document.querySelector('#projection').value = initialState.projectionType;
@@ -377,6 +405,20 @@ UIHandler.initButton('#save-model', {
 UIHandler.initButton('#load-model-as-children', {
     handlerFn: eventHandler.loadModelAsChild(),
 });
+
+UIHandler.initButton('#play-button', {
+    handlerFn: eventHandler.playButton(),
+});
+
+UIHandler.initButton('#save-animation', {
+    handlerFn: eventHandler.saveFrame(),
+});
+
+            
+UIHandler.initButton('#pause-button', {
+    handlerFn: eventHandler.pauseButton(),
+});
+
 
 // generate button tree
 const setComponentTree = (model) => {

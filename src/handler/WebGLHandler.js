@@ -140,7 +140,7 @@ class WebGLHandler {
 		}
 
 		this._updateProperties(model, newProps);
-		console.log("props", newProps)
+		// console.log("props", newProps)
 		this._gl.drawArrays(this._gl.TRIANGLES, 0, this._drawCounter);
 
 		return this;
