@@ -56,7 +56,7 @@ export default class WebGLHandler {
 		this._gl.enable(this._gl.DEPTH_TEST); // enabled by default, but let's be SURE.
 
 		this._gl.useProgram(this._glComponent.program);
-		
+
 		return this;
 	}
 
@@ -68,7 +68,7 @@ export default class WebGLHandler {
 
 		this._drawCounter = 0;
 		this._bindBuffers();
-		
+
 		const props = this._setupProperties(state);
 		this.draw(state.model, props);
 	}

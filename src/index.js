@@ -2,6 +2,8 @@ import WebGLHandler from './handler/WebGLHandler.js';
 import Converter from './utils/Converter.js';
 import UIHandler from './handler/UIHandler.js';
 
+
+let currentNodeCount = 0;
 // to be deleted
 const cubeModel = {
     "num_vertices": 8,
@@ -94,8 +96,7 @@ let currentModel2 = {
     children: []
 }
 
-
-let state = {
+ const initialState = {
     model: currentModel,
     selectedModel: currentModel,
     projectionType: 'orthographic',
@@ -115,10 +116,26 @@ let state = {
     cameraRotation: Converter.degToRad(0),
 };
 
-const renderSettings = {
-    primitiveType: webgl.getGl().TRIANGLES,
-    drawCounter: state.model.object.indices.length * 6,
+let state = {
+    model: currentModel,
+    selectedModel: currentModel,
+    projectionType: 'orthographic',
+    useLighting: true,
+    fudgeFactor: 0,
+    obliqueTetha: Converter.degToRad(45),
+    obliquePhi: Converter.degToRad(45),
+    far: -10,
+    near : 10,
+    top: 10,
+    bottom: -10,
+    left: -10,
+    right: 10,
+    zfar: 10,
+    znear: 0.01,
+    cameraRadius: -0.01,
+    cameraRotation: Converter.degToRad(0),
 };
+
 
 // console.log(renderSettings.drawCounter)
 
@@ -173,17 +190,17 @@ const eventHandler = {
                     content = JSON.parse(content);
                     // set all to default
                     state.model = content;
-                    renderSettings.drawCounter = content.vertices.length;
+                    state.selectedModel = content;
+                    console.log(content);
 
                     webgl.destroy();
                     webgl = new WebGLHandler(document.querySelector('canvas')).init();
 
                     webgl
                         .clearBuffer()
-                        .setVertices(state.model.vertices)
-                        .setColors(state.model.colors)
-                        .setNormals(state.model.normals)
-                        .render(renderSettings, state);
+                        .drawArticulated(state)
+
+                    setComponentTree(state.model);
                 };
             };
             input.click();
@@ -222,18 +239,12 @@ const eventHandler = {
                     var content = readerEvent.target.result;
                     content = JSON.parse(content);
                     // set all to default
-                    state.model = content;
-                    renderSettings.drawCounter = content.vertices.length;
-
-                    webgl.destroy();
-                    webgl = new WebGLHandler(document.querySelector('canvas')).init();
+                    state.selectedModel.children.push(content);
 
                     webgl
-                        .clearBuffer()
-                        .setVertices(state.model.vertices)
-                        .setColors(state.model.colors)
-                        .setNormals(state.model.normals)
-                        .render(renderSettings, state);
+                        .drawArticulated(state)
+                    
+                    setComponentTree(state.model);
                 };
             };
             input.click();
@@ -251,7 +262,7 @@ const eventHandler = {
     updateShadingState() {
         return (event) => {
             state.useLighting = event.target.checked;
-            webgl.clearBuffer().render(renderSettings, state);
+            webgl.drawArticulated(state)
         };
     },
 
@@ -271,66 +282,41 @@ const eventHandler = {
 
     selectModel(model){
         return (event) => {
-            console.log(model)
             state.selectedModel = model;
             document.querySelector('#chosen-component-name').innerHTML = model.part;
-            // renderSettings.drawCounter = model.vertices.length;
-            // webgl.clearBuffer().render(renderSettings, state);
         }
     },
 
-    toDefaultButtonHandler() {
-        return (event) => {
-            const initialState = {
-                translation: [0, 0, 0],
-                rotation: [
-                    Converter.degToRad(0),
-                    Converter.degToRad(0),
-                    Converter.degToRad(0),
-                ],
-                animation_rotation: [
-                    Converter.degToRad(0),
-                    Converter.degToRad(0),
-                    Converter.degToRad(0),
-                ],
-                scale: [1, 1, 1],
-                projectionType: 'orthographic',
-                useLighting: true,
-                fudgeFactor: 0,
-                obliqueTetha: 0,
-                obliquePhi: 0,
-                cameraRadius: -0.01,
-                cameraRotation: Converter.degToRad(0),
-                animation: false,
-            };
-            document.querySelector('#projection').value = initialState.projectionType;
-            document.querySelector('#projection').dispatchEvent(new Event('input'));
-            document.querySelector('#shading').value = initialState.useLighting;
-            const cameraRadius = document.querySelector('#cameraRadius');
-            cameraRadius.value = initialState.cameraRadius;
-            cameraRadius.nextElementSibling.value = initialState.cameraRadius;
+    // toDefaultButtonHandler() {
+    //     return (event) => {
+    //         document.querySelector('#projection').value = initialState.projectionType;
+    //         document.querySelector('#projection').dispatchEvent(new Event('input'));
+    //         document.querySelector('#shading').value = initialState.useLighting;
+    //         const cameraRadius = document.querySelector('#cameraRadius');
+    //         cameraRadius.value = initialState.cameraRadius;
+    //         cameraRadius.nextElementSibling.value = initialState.cameraRadius;
 
-            const cameraRotation = document.querySelector('#cameraRotation');
-            cameraRotation.value = initialState.cameraRotation;
-            cameraRotation.nextElementSibling.value = initialState.cameraRotation;
+    //         const cameraRotation = document.querySelector('#cameraRotation');
+    //         cameraRotation.value = initialState.cameraRotation;
+    //         cameraRotation.nextElementSibling.value = initialState.cameraRotation;
 
-            document.querySelectorAll('.translation').forEach((el, idx) => {
-                el.value = initialState.translation[idx];
-                el.nextElementSibling.value = initialState.translation[idx];
-            });
-            document.querySelectorAll('.rotation').forEach((el, idx) => {
-                el.value = initialState.rotation[idx];
-                el.nextElementSibling.value = initialState.rotation[idx];
-            });
-            document.querySelectorAll('.scaling').forEach((el, idx) => {
-                el.value = initialState.scale[idx];
-                el.nextElementSibling.value = initialState.scale[idx];
-            });
-            document.querySelector('#shading').checked = initialState.useLighting;
-            state = { ...initialState, model: state.model };
-            webgl.clearBuffer().render(renderSettings, state);
-        };
-    },
+    //         document.querySelectorAll('.translation').forEach((el, idx) => {
+    //             el.value = initialState.translation[idx];
+    //             el.nextElementSibling.value = initialState.translation[idx];
+    //         });
+    //         document.querySelectorAll('.rotation').forEach((el, idx) => {
+    //             el.value = initialState.rotation[idx];
+    //             el.nextElementSibling.value = initialState.rotation[idx];
+    //         });
+    //         document.querySelectorAll('.scaling').forEach((el, idx) => {
+    //             el.value = initialState.scale[idx];
+    //             el.nextElementSibling.value = initialState.scale[idx];
+    //         });
+    //         document.querySelector('#shading').checked = initialState.useLighting;
+    //         state = { ...initialState, model: state.model };
+    //         webgl.clearBuffer().render(renderSettings, state);
+    //     };
+    // },
 };
 
 UIHandler.initSlider('#obj-translation-x', {
@@ -384,12 +370,17 @@ UIHandler.initRadio('#projection', {
     handlerFn: eventHandler.updateProjectionType(),
 });
 
-// UIHandler.initButton('#load-model', {
-//     handlerFn: eventHandler.loadModel(),
-// });
-// UIHandler.initButton('#save-model', {
-//     handlerFn: eventHandler.saveModel(),
-// });
+UIHandler.initButton('#load-model', {
+    handlerFn: eventHandler.loadModel(),
+});
+
+UIHandler.initButton('#save-model', {
+    handlerFn: eventHandler.saveModel(),
+});
+
+UIHandler.initButton('#load-model-as-children', {
+    handlerFn: eventHandler.loadModelAsChild(),
+});
 
 // generate button tree
 const setComponentTree = (model) => {
@@ -399,10 +390,12 @@ const setComponentTree = (model) => {
 }
 
 const generateComponentTree = (model, depth = 0) => {
+    currentNodeCount++;
     const componentTree = document.querySelector('#component-tree');
     const button = document.createElement('button');
 
-    button.id = model.part.toLowerCase().replace(' ', '-');
+    let id = model.part.toLowerCase().replaceAll(' ', '-') + '-' + currentNodeCount;
+    button.id = id;
     button.style.marginLeft = `${depth * 10}px`;
     button.style.display = 'block';
 
@@ -423,10 +416,10 @@ const generateComponentTree = (model, depth = 0) => {
 
 setComponentTree(state.model);
 
-// UIHandler.initCheckbox('#shading', {
-//     initialValue: state.useLighting,
-//     handlerFn: eventHandler.updateShadingState(),
-// });
+UIHandler.initCheckbox('#shading', {
+    initialValue: state.useLighting,
+    handlerFn: eventHandler.updateShadingState(),
+});
 
 UIHandler.initSlider('#camera-view', {
     initialValue: state.cameraRadius,
