@@ -100,7 +100,6 @@ export default class WebGLHandler {
 		}
 
 		this._updateProperties(model, newProps);
-		console.log(model.part, newProps.modelMatrix.getData())
 
 		this._gl.drawArrays(this._gl.TRIANGLES, 0, this._drawCounter);
 
@@ -165,7 +164,7 @@ export default class WebGLHandler {
 	}
 
 	_updateProperties(model, props) {
-		props.modelMatrix.transform(
+		props.modelMatrix.identity().transform(
 			model.translation,
 			model.rotation,
 			model.scale
