@@ -1,7 +1,3 @@
-import Matrix4 from './Matrix4.js';
-import Converter from './Converter.js';
-import GeometryOp from './GeometryOp.js';
-
 const ViewOp = {
     lookAt(cameraPos, target, up) {
         const zAxis = GeometryOp.normalize(
@@ -69,5 +65,3 @@ const ViewOp = {
     },
 
 };
-
-export default ViewOp;

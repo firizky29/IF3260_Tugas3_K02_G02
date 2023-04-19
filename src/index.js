@@ -1,7 +1,3 @@
-import WebGLHandler from './handler/WebGLHandler.js';
-import Converter from './utils/Converter.js';
-import UIHandler from './handler/UIHandler.js';
-
 
 let currentNodeCount = 0;
 // to be deleted
@@ -68,7 +64,7 @@ const cubeModel2 = {
 }
 
 
-let webgl = new WebGLHandler(document.querySelector('canvas')).init();
+let webgl = await new WebGLHandler(document.querySelector('canvas')).init();
 
 let currentModel = {
     object: cubeModel,
@@ -442,7 +438,7 @@ setComponentTree(state.model);
 
 // console.log(state.cameraRadius)
 
-webgl.drawArticulated(state)
+webgl.drawArticulated(state);
 
 // webgl
 //     .clearBuffer()
