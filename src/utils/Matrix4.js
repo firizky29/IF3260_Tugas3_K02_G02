@@ -1,10 +1,13 @@
 
 
 export default class Matrix4 {
-    constructor() {
+    constructor(data) {
         this._rows = 4;
         this._cols = 4;
-        this.identity()
+        this._data = new Array(this._rows).fill(0).map(() => new Array(this._cols).fill(0));
+        if (data) {
+            this._data = data;
+        }
     }
 
     get(row, col) {
@@ -23,8 +26,12 @@ export default class Matrix4 {
     }
 
     setData(data) {
-        // console.log(data)
-        this._data = data;
+        // console.log("data", data)
+        for (let i = 0; i < this._rows; i++) {
+            for (let j = 0; j < this._cols; j++) {
+                this.set(i, j, data[i][j]);
+            }
+        }
     }
 
     identity() {
@@ -66,7 +73,13 @@ export default class Matrix4 {
     }
 
     clone() {
-        return new Matrix4(this._data);
+        const cloneMatrix = new Matrix4();
+        for(let i = 0; i < this._rows; i++){
+            for(let j = 0; j < this._cols; j++){
+                cloneMatrix.set(i, j, this.get(i, j));
+            }
+        }
+        return cloneMatrix;
     }
 
     multiply(matrix) {
@@ -100,188 +113,66 @@ export default class Matrix4 {
     }
 
 
-    _determinant() {
-        let a00 = this._data[0][0],
-            a01 = this._data[0][1],
-            a02 = this._data[0][2],
-            a03 = this._data[0][3],
-            a10 = this._data[1][0],
-            a11 = this._data[1][1],
-            a12 = this._data[1][2],
-            a13 = this._data[1][3],
-            a20 = this._data[2][0],
-            a21 = this._data[2][1],
-            a22 = this._data[2][2],
-            a23 = this._data[2][3],
-            a30 = this._data[3][0],
-            a31 = this._data[3][1],
-            a32 = this._data[3][2],
-            a33 = this._data[3][3],
-            b00 = a00 * a11 - a01 * a10,
-            b01 = a00 * a12 - a02 * a10,
-            b02 = a00 * a13 - a03 * a10,
-            b03 = a01 * a12 - a02 * a11,
-            b04 = a01 * a13 - a03 * a11,
-            b05 = a02 * a13 - a03 * a12,
-            b06 = a20 * a31 - a21 * a30,
-            b07 = a20 * a32 - a22 * a30,
-            b08 = a20 * a33 - a23 * a30,
-            b09 = a21 * a32 - a22 * a31,
-            b10 = a21 * a33 - a23 * a31,
-            b11 = a22 * a33 - a23 * a32;
-        return (
-            b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06
-        );
-    }
 
-    _adjugate() {
-        // console.log(this._data)
-        let a00 = this._data[0][0],
-            a01 = this._data[0][1],
-            a02 = this._data[0][2],
-            a03 = this._data[0][3],
-            a10 = this._data[1][0],
-            a11 = this._data[1][1],
-            a12 = this._data[1][2],
-            a13 = this._data[1][3],
-            a20 = this._data[2][0],
-            a21 = this._data[2][1],
-            a22 = this._data[2][2],
-            a23 = this._data[2][3],
-            a30 = this._data[3][0],
-            a31 = this._data[3][1],
-            a32 = this._data[3][2],
-            a33 = this._data[3][3];
-        const adj =  new Matrix4().setData([
-            [
-                a11 * a22 * a33 +
-                a12 * a23 * a31 +
-                a13 * a21 * a32 -
-                a11 * a23 * a32 -
-                a12 * a21 * a33 -
-                a13 * a22 * a31,
-                a01 * a23 * a32 +
-                a02 * a21 * a33 +
-                a03 * a22 * a31 -
-                a01 * a22 * a33 -
-                a02 * a23 * a31 -
-                a03 * a21 * a32,
-                a01 * a12 * a33 +
-                a02 * a13 * a31 +
-                a03 * a11 * a32 -
-                a01 * a13 * a32 -
-                a02 * a11 * a33 -
-                a03 * a12 * a31,
-                a01 * a13 * a22 +
-                a02 * a11 * a23 +
-                a03 * a12 * a21 -
-                a01 * a12 * a23 -
-                a02 * a13 * a21 -
-                a03 * a11 * a22,
-            ],
-            [
-                a10 * a23 * a32 +
-                a12 * a20 * a33 +
-                a13 * a22 * a30 -
-                a10 * a22 * a33 -
-                a12 * a23 * a30 -
-                a13 * a20 * a32,
-                a00 * a22 * a33 +
-                a02 * a23 * a30 +
-                a03 * a20 * a32 -
-                a00 * a23 * a32 -
-                a02 * a20 * a33 -
-                a03 * a22 * a30,
-                a00 * a13 * a32 +
-                a02 * a10 * a33 +
-                a03 * a12 * a30 -
-                a00 * a12 * a33 -
-                a02 * a13 * a30 -
-                a03 * a10 * a32,
-                a00 * a12 * a23 +
-                a02 * a13 * a20 +
-                a03 * a10 * a22 -
-                a00 * a13 * a22 -
-                a02 * a10 * a23 -
-                a03 * a12 * a20,
-            ],
-            [
-                a10 * a21 * a33 +
-                a11 * a23 * a30 +
-                a13 * a20 * a31 -
-                a10 * a23 * a31 -
-                a11 * a20 * a33 -
-                a13 * a21 * a30,
-                a00 * a23 * a31 +
-                a01 * a20 * a33 +
-                a03 * a21 * a30 -
-                a00 * a21 * a33 -
-                a01 * a23 * a30 -
-                a03 * a20 * a31,
-                a00 * a11 * a33 +
-                a01 * a13 * a30 +
-                a03 * a10 * a31 -
-                a00 * a13 * a31 -
-                a01 * a10 * a33 -
-                a03 * a11 * a30,
-                a00 * a13 * a21 +
-                a01 * a10 * a23 +
-                a03 * a11 * a20 -
-                a00 * a11 * a23 -
-                a01 * a13 * a20 -
-                a03 * a10 * a21,
-            ],
-            [
-                a10 * a22 * a31 +
-                a11 * a20 * a32 +
-                a12 * a21 * a30 -
-                a10 * a21 * a32 -
-                a11 * a22 * a30 -
-                a12 * a20 * a31,
-                a00 * a21 * a32 +
-                a01 * a22 * a30 +
-                a02 * a20 * a31 -
-                a00 * a22 * a31 -
-                a01 * a20 * a32 -
-                a02 * a21 * a30,
-                a00 * a12 * a31 +
-                a01 * a10 * a32 +
-                a02 * a11 * a30 -
-                a00 * a11 * a32 -
-                a01 * a12 * a30 -
-                a02 * a10 * a31,
-                a00 * a11 * a22 +
-                a01 * a12 * a20 +
-                a02 * a10 * a21 -
-                a00 * a12 * a21 -
-                a01 * a10 * a22 -
-                a02 * a11 * a20,
-            ],
-        ]);
-    
-        return adj;
-    }
+
 
     inverse() {
-        let det = this._determinant();
-        // console.log(det)
-        if (!det) {
-            console.log('Matrix is not invertible');
-        } else {
-            let adj = this._adjugate();
-            console.log("adj",adj)
-            for (let i = 0; i < this._rows; i++) {
-                for (let j = 0; j < this._cols; j++) {
-                    // console.log(adj.getData(i, j) / det)
-                    adj.set(i, j, adj.getData(i, j) / det);
-                }
-            }
-            // console.log(adj)
-            // console.log(adj.getData());
-            this.setData(adj.getData());
+        var a00 = this.get(0, 0),
+            a01 = this.get(0, 1),
+            a02 = this.get(0, 2),
+            a03 = this.get(0, 3);
+        var a10 = this.get(1, 0),
+            a11 = this.get(1, 1),
+            a12 = this.get(1, 2),
+            a13 = this.get(1, 3);
+        var a20 = this.get(2, 0),
+            a21 = this.get(2, 1),
+            a22 = this.get(2, 2),
+            a23 = this.get(2, 3);
+        var a30 = this.get(3, 0),
+            a31 = this.get(3, 1),
+            a32 = this.get(3, 2),
+            a33 = this.get(3, 3);
 
-            return this;
+        var b00 = a00 * a11 - a01 * a10;
+        var b01 = a00 * a12 - a02 * a10;
+        var b02 = a00 * a13 - a03 * a10;
+        var b03 = a01 * a12 - a02 * a11;
+        var b04 = a01 * a13 - a03 * a11;
+        var b05 = a02 * a13 - a03 * a12;
+        var b06 = a20 * a31 - a21 * a30;
+        var b07 = a20 * a32 - a22 * a30;
+        var b08 = a20 * a33 - a23 * a30;
+        var b09 = a21 * a32 - a22 * a31;
+        var b10 = a21 * a33 - a23 * a31;
+        var b11 = a22 * a33 - a23 * a32;
+
+        var det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+
+        if (!det) {
+            return null;
         }
+
+        det = 1.0 / det;
+        this.set(0, 0, (a11 * b11 - a12 * b10 + a13 * b09) * det);
+        this.set(0, 1, (a02 * b10 - a01 * b11 - a03 * b09) * det);
+        this.set(0, 2, (a31 * b05 - a32 * b04 + a33 * b03) * det);
+        this.set(0, 3, (a22 * b04 - a21 * b05 - a23 * b03) * det);
+        this.set(1, 0, (a12 * b08 - a10 * b11 - a13 * b07) * det);
+        this.set(1, 1, (a00 * b11 - a02 * b08 + a03 * b07) * det);
+        this.set(1, 2, (a32 * b02 - a30 * b05 - a33 * b01) * det);
+        this.set(1, 3, (a20 * b05 - a22 * b02 + a23 * b01) * det);
+        this.set(2, 0, (a10 * b10 - a11 * b08 + a13 * b06) * det);
+        this.set(2, 1, (a01 * b08 - a00 * b10 - a03 * b06) * det);
+        this.set(2, 2, (a30 * b04 - a31 * b02 + a33 * b00) * det);
+        this.set(2, 3, (a21 * b02 - a20 * b04 - a23 * b00) * det);
+        this.set(3, 0, (a11 * b07 - a10 * b09 - a12 * b06) * det);
+        this.set(3, 1, (a00 * b09 - a01 * b07 + a02 * b06) * det);
+        this.set(3, 2, (a31 * b01 - a30 * b03 - a32 * b00) * det);
+        this.set(3, 3, (a20 * b03 - a21 * b01 + a22 * b00) * det);
+        
+        // console.log(this);
+        return this;
     }
 
     translate(tx, ty, tz) {
@@ -339,8 +230,8 @@ export default class Matrix4 {
 
     rotate(xAngleInRadians, yAngleInRadians, zAngleInRadians) {
         return this.rotateX(xAngleInRadians)
-                    .rotateY(yAngleInRadians)
-                    .rotateZ(zAngleInRadians);
+            .rotateY(yAngleInRadians)
+            .rotateZ(zAngleInRadians);
     }
 
     scale(sx, sy, sz) {
@@ -355,8 +246,9 @@ export default class Matrix4 {
     }
 
     transform(translation, rotation, scale) {
-        return this.translate(translation[0], translation[1], translation[2])
-                    .rotate(rotation[0], rotation[1], rotation[2])
-                    .scale(scale[0], scale[1], scale[2]);
+        return this
+            .translate(translation[0], translation[1], translation[2])
+            .rotate(rotation[0], rotation[1], rotation[2])
+            .scale(scale[0], scale[1], scale[2]);
     }
 }

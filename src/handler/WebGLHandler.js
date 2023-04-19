@@ -1,11 +1,7 @@
 import CONFIG from '../global/config.js';
-import CameraOp from '../utils/CameraOp.js';
 import Converter from '../utils/Converter.js';
-import MatrixOp from '../utils//MatrixOp.js';
 import ViewOp from '../utils//ViewOp.js';
 import Matrix4 from '../utils/Matrix4.js';
-import Matrix from '../utils/Matrix.js';
-import { Transform, TransformationMatrix4D } from '../utils/Transformation4D.js';
 import Render from '../utils/render.js';
 
 export default class WebGLHandler {
@@ -34,6 +30,8 @@ export default class WebGLHandler {
 			'a_normal',
 			'a_color'
 		]
+
+		this._drawCounter = 0;
 	}
 
 	init() {
@@ -53,20 +51,25 @@ export default class WebGLHandler {
 		this._createBuffers();
 		this._createUniformLocations();
 		this._createAttributeLocations();
-		this._drawCounter = 0;
 
 
 		this._gl.enable(this._gl.DEPTH_TEST); // enabled by default, but let's be SURE.
 
 		this._gl.useProgram(this._glComponent.program);
-		this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
-		this._gl.scissor(0, 0, this._gl.canvas.width, this._gl.canvas.height);
+		// this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
+		// this._gl.scissor(0, 0, this._gl.canvas.width, this._gl.canvas.height);
 		return this;
 	}
 
+	drawArticulated(state) {
+		this.clearBuffer();
+		this._drawCounter = 0;
+		const props = this.setupProperties(state);
+		this.draw(state.model, props);
+	}
+
 	draw(model, props) {
-
-
+		// console.log(model);
 		props.modelMatrix = props.modelMatrix.clone().transform(
 			model.translation,
 			model.rotation,
@@ -76,9 +79,8 @@ export default class WebGLHandler {
 
 		this._updateProperties(props);
 
-		// console.log(props);
-
 		// console.log(props)
+
 
 		this.drawModel(model, props);
 
@@ -92,13 +94,13 @@ export default class WebGLHandler {
 
 
 	drawModel(model, props) {
-		this.clearBuffer()
+		// this.clearBuffer()
 
 		let glVertices = [];
 		let glColors = [];
 		let glNormals = [];
 		this._initBuffers(glVertices, glColors, glNormals, model);
-		// console.log(model.model.transl)
+
 		props.modelMatrix = props.modelMatrix.clone().transform(
 			model.translation,
 			model.rotation,
@@ -106,13 +108,21 @@ export default class WebGLHandler {
 		)
 		props.normalMatrix = props.modelMatrix.clone().inverse().transpose();
 
-		this._updateProperties(model, props);
+		this._updateProperties(props);
 
 		this.setVertices(glVertices);
 		this.setColors(glColors);
 		this.setNormals(glNormals);
 
-		this._gl.drawArrays(this._gl.TRIANGLE, 0, this.drawCounter);
+		// console.log(props.projectionMatrix.clone().multiply(props.viewMatrix).multiply(props.modelMatrix))
+
+		// console.log(glVertices);
+		// console.log(glColors);
+		// console.log(glNormals);
+		// console.log(props);
+		// console.log(this._drawCounter);
+
+		this._gl.drawArrays(this._gl.TRIANGLE, 0, this._drawCounter);
 
 		return this;
 	}
@@ -161,7 +171,7 @@ export default class WebGLHandler {
 			normalMatrix,
 			useLighting
 		}
-		console.log("HELLOE", uniforms)
+		// console.log(uniforms)
 
 		this._setUniforms(uniforms);
 
@@ -169,27 +179,29 @@ export default class WebGLHandler {
 	}
 
 	_updateProperties(props) {
+		// console.log(props)
 		this._setUniforms(props);
 	}
 
-	getProjectionMatrix(projectionType, obliqueTetha, obliquePhi) {
-		const left = 0;
-		const right = this._gl.canvas.clientWidth;
-		const bottom = 0;
-		const top = this._gl.canvas.clientHeight;
-		const near = 850;
-		const far = -850;
+	getProjectionMatrix(projectionType, state) {
+		const left = state.left;
+		const right = state.right;
+		const bottom = state.bottom;
+		const top = state.top;
+		const near = state.near;
+		const far = state.far;
+		const obliqueTetha = state.obliqueTetha;
+		const obliquePhi = state.obliquePhi;
 
 		const fov = Converter.degToRad(60);
-		const aspect = this._gl.canvas.clientWidth / this._gl.canvas.clientHeight;
-		const zNear = 0.1;
-		const zFar = 2000;
+		const aspect = 1.0;
+
 
 		switch (projectionType) {
 			case 'orthographic':
 				return ViewOp.orthographic(left, right, bottom, top, near, far);
 			case 'perspective':
-				return ViewOp.perspective(fov, aspect, zNear, zFar);
+				return ViewOp.perspective(fov, aspect, near, far);
 			case 'oblique':
 				return ViewOp.oblique(left, right, bottom, top, near, far, obliqueTetha, obliquePhi);
 			default:
@@ -209,7 +221,9 @@ export default class WebGLHandler {
 			useLighting
 		} = uniforms;
 
+		// console.log(projectionMatrix.flatten())
 
+		// console.log(this._glComponent.projectionMatrix)
 		this._gl.uniformMatrix4fv(
 			this._glComponent.projectionMatrix,
 			false,
@@ -323,12 +337,12 @@ export default class WebGLHandler {
 
 			// console.log(corners)
 			Render.rectangle(glVertices, glColors, glNormals, corners, colors[color_idx])
-			this.drawCounter += 6;
+			this._drawCounter += 6;
 		}
 
-		for (let i = 0; i < model.children.length; i++) {
-			this._initBuffers(glVertices, glColors, glNormals, model.children[i]);
-		}
+		// for (let i = 0; i < model.children.length; i++) {
+		// 	this._initBuffers(glVertices, glColors, glNormals, model.children[i]);
+		// }
 	}
 
 
@@ -376,76 +390,126 @@ export default class WebGLHandler {
 		return this;
 	}
 
+	setModel(model) {
+		// console.log(num_indices)
+
+		let glVertices = [];
+		let glColors = [];
+		let glNormals = [];
+		this._setPrimitives(glVertices, glColors, glNormals, model);
+
+		this.setVertices(glVertices);
+		this.setColors(glColors);
+		this.setNormals(glNormals);
+
+		// console.log(glVertices);
+
+		return this;
+	}
+
+	_setPrimitives(glVertices, glColors, glNormals, model) {
+		let object = model.object;
+		let vertices = object.vertices;
+		let colors = object.colors;
+		let indices = object.indices;
+
+		for (let i = 0; i < object.num_indices; i++) {
+			let vertex_idx = indices[i];
+
+			let corners = [];
+			corners.push(vertices[vertex_idx[0]]);
+			corners.push(vertices[vertex_idx[1]]);
+			corners.push(vertices[vertex_idx[2]]);
+			corners.push(vertices[vertex_idx[3]]);
+			let color_idx = i % colors.length;
+
+			// console.log(corners)
+			Render.rectangle(
+				glVertices,
+				glColors,
+				glNormals,
+				corners,
+				colors[color_idx]
+			);
+			this.drawCounter += 6;
+		}
+
+		for (let i = 0; i < model.children.length; i++) {
+			this._setPrimitives(glVertices, glColors, glNormals, model.children[i]);
+		}
+	}
+
+
 
 	render(settings, state) {
-		const positionAttributeLocation = this._gl.getAttribLocation(
-			this._glComponent.program,
-			'a_position'
-		);
+		// const positionAttributeLocation = this._gl.getAttribLocation(
+		// 	this._glComponent.program,
+		// 	'a_position'
+		// );
 
-		const colorAttributeLocation = this._gl.getAttribLocation(
-			this._glComponent.program,
-			'a_color'
-		);
+		// const colorAttributeLocation = this._gl.getAttribLocation(
+		// 	this._glComponent.program,
+		// 	'a_color'
+		// );
 
-		const normalAttributeLocation = this._gl.getAttribLocation(
-			this._glComponent.program,
-			'a_normal'
-		);
+		// const normalAttributeLocation = this._gl.getAttribLocation(
+		// 	this._glComponent.program,
+		// 	'a_normal'
+		// );
 
-		const matrixLocation = this._gl.getUniformLocation(
-			this._glComponent.program,
-			'modelView'
-		);
+		// const matrixLocation = this._gl.getUniformLocation(
+		// 	this._glComponent.program,
+		// 	'modelMatrix'
+		// );
 
-		const projectionMatrixLocation = this._gl.getUniformLocation(
-			this._glComponent.program,
-			'projection'
-		);
+		// const projectionMatrixLocation = this._gl.getUniformLocation(
+		// 	this._glComponent.program,
+		// 	'projectionMatrix'
+		// );
 
-		const normalMatrixLocation = this._gl.getUniformLocation(
-			this._glComponent.program,
-			'normalMat'
-		);
+		// const normalMatrixLocation = this._gl.getUniformLocation(
+		// 	this._glComponent.program,
+		// 	'normalMat'
+		// );
 
-		const useLighting = this._gl.getUniformLocation(
-			this._glComponent.program,
-			'useLighting'
-		);
+		// const useLighting = this._gl.getUniformLocation(
+		// 	this._glComponent.program,
+		// 	'useLighting'
+		// );
 
-		const fudgeFactor = this._gl.getUniformLocation(
-			this._glComponent.program,
-			'fudgeFactor'
-		);
+		// const fudgeFactor = this._gl.getUniformLocation(
+		// 	this._glComponent.program,
+		// 	'fudgeFactor'
+		// );
 
 		// Camera properties
-		const aspect = 1;
-		const near = 0.5;
-		const far = 5;
-		const radius = -state.cameraRadius;
+		// const aspect = 1;
+		// const near = 0.5;
+		// const far = 5;
+		// const radius = -state.cameraRadius;
 
-		const camSettings = {
-			camFieldOfView: 70,
-			camRotation: state.cameraRotation,
-		};
+		// const camSettings = {
+		// 	camFieldOfView: 70,
+		// 	camRotation: state.cameraRotation,
+		// };
 
-		let worldMatrix = TransformationMatrix4D.yRotation(camSettings.camRotation);
+		// let worldMatrix = TransformationMatrix4D.yRotation(camSettings.camRotation);
 
-		const target = new Matrix(1, 3, [[0, 0, 0]]);
-		const up = new Matrix(1, 3, [[0, 1, 0]]);
-		let cameraMatrix = TransformationMatrix4D.yRotation(
-			camSettings.camRotation
-		);
-		cameraMatrix = Transform.translate(cameraMatrix, 0, 0, radius * 1.5);
-		let cameraObjData = cameraMatrix.getPropsToObj().data;
+		// const target = new Matrix(1, 3, [[0, 0, 0]]);
+		// const up = new Matrix(1, 3, [[0, 1, 0]]);
+		// let cameraMatrix = TransformationMatrix4D.yRotation(
+		// 	camSettings.camRotation
+		// );
+		// cameraMatrix = Transform.translate(cameraMatrix, 0, 0, radius * 1.5);
+		// let cameraObjData = cameraMatrix.getPropsToObj().data;
 
-		const cameraPos = new Matrix(1, 3, [
-			[cameraObjData[3][0], cameraObjData[3][1], cameraObjData[3][2]],
-		]);
+		// const cameraPos = new Matrix(1, 3, [
+		// 	[cameraObjData[3][0], cameraObjData[3][1], cameraObjData[3][2]],
+		// ]);
 
-		cameraMatrix = CameraOp.lookAt(cameraPos, target, up);
+		// cameraMatrix = CameraOp.lookAt(cameraPos, target, up);
 
-		const viewMatrix = cameraMatrix.invert();
+		// const viewMatrix = cameraMatrix.invert();
 		// -----------------------
 
 		this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
@@ -463,9 +527,9 @@ export default class WebGLHandler {
 
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.vertexBuffer);
 
-		this._gl.enableVertexAttribArray(positionAttributeLocation);
+		this._gl.enableVertexAttribArray(this._glComponent.positionAttributeLocation);
 		this._gl.vertexAttribPointer(
-			positionAttributeLocation,
+			this._glComponent.positionAttributeLocation,
 			size,
 			type,
 			normalize,
@@ -475,9 +539,9 @@ export default class WebGLHandler {
 
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.colorBuffer);
 
-		this._gl.enableVertexAttribArray(colorAttributeLocation);
+		this._gl.enableVertexAttribArray(this._glComponent.colorAttributeLocation);
 		this._gl.vertexAttribPointer(
-			colorAttributeLocation,
+			this._glComponent.colorAttributeLocation,
 			size,
 			this._gl.UNSIGNED_BYTE,
 			true,
@@ -487,9 +551,9 @@ export default class WebGLHandler {
 
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.normalBuffer);
 
-		this._gl.enableVertexAttribArray(normalAttributeLocation);
+		this._gl.enableVertexAttribArray(this._glComponent.normalAttributeLocation);
 		this._gl.vertexAttribPointer(
-			normalAttributeLocation,
+			this._glComponent.normalAttributeLocation,
 			size,
 			type,
 			normalize,
@@ -497,66 +561,81 @@ export default class WebGLHandler {
 			offset
 		);
 
-		let matrix = TransformationMatrix4D.projection(
-			this._gl.canvas.clientWidth,
-			this._gl.canvas.clientHeight,
-			400
-		);
+		let matrix = new Matrix4().identity()
 
 
-		matrix = Transform.translate(matrix, ...state.model.translation);
-		matrix = Transform.xRotate(matrix, state.model.rotation[0]);
-		matrix = Transform.yRotate(matrix, state.model.rotation[1]);
-		matrix = Transform.zRotate(matrix, state.model.rotation[2]);
-		// matrix = Transform.xRotate(matrix, state.model.animation_rotation[0]);
-		// matrix = Transform.yRotate(matrix, state.model.animation_rotation[1]);
-		// matrix = Transform.zRotate(matrix, state.model.animation_rotation[2]);
-		matrix = Transform.scale(matrix, ...state.model.scale);
-		let projectionMatrix = TransformationMatrix4D.projection(
-			state.projectionType,
-			state.obliqueTetha,
-			state.obliquePhi
-		);
+		matrix.transform(state.model.translation, state.model.rotation, state.model.scale);
+		let projectionMatrix = this.getProjectionMatrix(state.projectionType, state)
 
-		if (state.projectionType === 'perspective') {
-			let perspectiveProjectionMatrix = CameraOp.perspective(
-				Converter.degToRad(camSettings.camFieldOfView),
-				aspect,
-				near,
-				far
-			);
-
-			projectionMatrix = MatrixOp.multiply(
-				viewMatrix,
-				perspectiveProjectionMatrix
-			);
-
-			projectionMatrix = Transform.scale(projectionMatrix, -1, 1, 1);
+		// console.log(matrix)
+		for (let i = 0; i < state.model.object.vertices.length; i++) {
+			const project = projectionMatrix.clone().transpose();
+			let vertex = state.model.object.vertices[i];
+			// multiply by projection matrix
+			let vertex2 = []
+			for (let j = 0; j < 4; j++) {
+				let sum = 0;
+				for (let k = 0; k < 4; k++) {
+					if (k === 3) {
+						sum += 0;
+					} else {
+						sum += project.get(j, k) * vertex[k];
+					}
+				}
+				vertex2[j] = sum;
+			}
+			console.log(vertex, vertex2)
 		}
 
-		projectionMatrix = MatrixOp.multiply(worldMatrix, projectionMatrix);
 
-		const normalMatrix = MatrixOp.copy(matrix).invert().transpose();
 
-		this._gl.uniformMatrix4fv(matrixLocation, false, matrix.flatten());
+		// console.log(matrix, projectionMatrix)
+		// let projectionMatrix = TransformationMatrix4D.projection(
+		// 	state.projectionType,
+		// 	state.obliqueTetha,
+		// 	state.obliquePhi
+		// );
+
+		// if (state.projectionType === 'perspective') {
+		// 	let perspectiveProjectionMatrix = CameraOp.perspective(
+		// 		Converter.degToRad(camSettings.camFieldOfView),
+		// 		aspect,
+		// 		near,
+		// 		far
+		// 	);
+
+		// 	projectionMatrix = MatrixOp.multiply(
+		// 		viewMatrix,
+		// 		perspectiveProjectionMatrix
+		// 	);
+
+		// 	projectionMatrix = Transform.scale(projectionMatrix, -1, 1, 1);
+		// }
+
+		// projectionMatrix = MatrixOp.multiply(worldMatrix, projectionMatrix);
+
+		const normalMatrix = matrix.clone().inverse().transpose();
+		// const normalMatrix = matrix.clone();
+
+		this._gl.uniformMatrix4fv(this._glComponent.modelMatrix, false, matrix.flatten());
 		this._gl.uniformMatrix4fv(
-			projectionMatrixLocation,
+			this._glComponent.projectionMatrix,
 			false,
 			projectionMatrix.flatten()
 		);
 		this._gl.uniformMatrix4fv(
-			normalMatrixLocation,
+			this._glComponent.normalMatrix,
 			false,
 			normalMatrix.flatten()
 		);
 
-		this._gl.uniform1i(useLighting, state.useLighting);
-		this._gl.uniform1f(fudgeFactor, state.fudgeFactor);
+		// this._gl.uniform1i(useLighting, state.useLighting);
+		// this._gl.uniform1f(fudgeFactor, state.fudgeFactor);
 
 		// console.log(drawCounter)
 
 
-		this._gl.drawArrays(primitiveType, offset, drawCounter);
+		this._gl.drawArrays(primitiveType, offset, 72);
 
 
 	}
@@ -630,16 +709,15 @@ export default class WebGLHandler {
 
 	_createAttributeLocations() {
 		for (let attribute of this._attributes) {
-			attribute = attribute.replace('a_', '') + 'AttributeLocation';
-			this._glComponent[attribute] = this._gl.getAttribLocation(
+			const attributeName = attribute.replace('a_', '') + 'AttributeLocation';
+			// console.log(attributeName, attribute)
+			this._glComponent[attributeName] = this._gl.getAttribLocation(
 				this._glComponent.program,
 				attribute
 			);
 		}
 	}
 
-
-	_draw(projectionMatrix, worldMatrix, viewMatrix) { }
 
 	destroy() {
 		for (let buffer of this._buffers) {

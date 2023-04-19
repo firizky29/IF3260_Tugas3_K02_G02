@@ -73,7 +73,7 @@ let currentModel = {
     part: "Part 1",
     textureType: "NONE",
     translation: [0, 0, 0],
-    rotation: [0, Converter.degToRad(-45), Converter.degToRad(45)],
+    rotation: [0, 0, 0],
     scale: [1, 1, 1],
     child_translate: [0, 0, 0],
     child_rotate: [0, 0, 0],
@@ -86,7 +86,7 @@ let currentModel2 = {
     part: "Part 2",
     textureType: "NONE",
     translation: [0, 0, 0],
-    rotation: [0, Converter.degToRad(-45), Converter.degToRad(45)],
+    rotation: [0, 0, 0],
     scale: [1, 1, 1],
     child_translate: [0, 0, 0],
     child_rotate: [0, 0, 0],
@@ -101,8 +101,14 @@ let state = {
     projectionType: 'orthographic',
     useLighting: true,
     fudgeFactor: 0,
-    obliqueTetha: 0,
-    obliquePhi: 0,
+    obliqueTetha: Converter.degToRad(63.5),
+    obliquePhi: Converter.degToRad(63.5),
+    far: -1,
+    near : 1,
+    top: 1,
+    bottom: -1,
+    left: -1,
+    right: 1,
     cameraRadius: 0,
     cameraRotation: Converter.degToRad(0),
 };
@@ -343,56 +349,56 @@ const eventHandler = {
     },
 };
 
-// UIHandler.initSlider('#obj-translation-x', {
-//     initialValue: state.model.translation[0],
-//     handlerFn: eventHandler.updatePosition(0),
-// });
+UIHandler.initSlider('#obj-translation-x', {
+    initialValue: state.model.translation[0],
+    handlerFn: eventHandler.updatePosition(0),
+});
 
-// UIHandler.initSlider('#obj-translation-y', {
-//     initialValue: state.model.translation[1],
-//     handlerFn: eventHandler.updatePosition(1),
-// });
+UIHandler.initSlider('#obj-translation-y', {
+    initialValue: state.model.translation[1],
+    handlerFn: eventHandler.updatePosition(1),
+});
 
-// UIHandler.initSlider('#obj-translation-z', {
-//     initialValue: state.model.translation[2],
-//     handlerFn: eventHandler.updatePosition(2),
-// });
+UIHandler.initSlider('#obj-translation-z', {
+    initialValue: state.model.translation[2],
+    handlerFn: eventHandler.updatePosition(2),
+});
 
-// UIHandler.initSlider('#obj-rotation-x', {
-//     initialValue: state.model.rotation[0],
-//     handlerFn: eventHandler.updateRotation(0),
-// });
+UIHandler.initSlider('#obj-rotation-x', {
+    initialValue: state.model.rotation[0],
+    handlerFn: eventHandler.updateRotation(0),
+});
 
-// UIHandler.initSlider('#obj-rotation-y', {
-//     initialValue: state.model.rotation[1],
-//     handlerFn: eventHandler.updateRotation(1),
-// });
+UIHandler.initSlider('#obj-rotation-y', {
+    initialValue: state.model.rotation[1],
+    handlerFn: eventHandler.updateRotation(1),
+});
 
-// UIHandler.initSlider('#obj-rotation-z', {
-//     initialValue: state.model.rotation[2],
-//     handlerFn: eventHandler.updateRotation(2),
-// });
+UIHandler.initSlider('#obj-rotation-z', {
+    initialValue: state.model.rotation[2],
+    handlerFn: eventHandler.updateRotation(2),
+});
 
-// UIHandler.initSlider('#obj-scaling-x', {
-//     initialValue: state.model.scale[0],
-//     handlerFn: eventHandler.updateScale(0),
-// });
+UIHandler.initSlider('#obj-scaling-x', {
+    initialValue: state.model.scale[0],
+    handlerFn: eventHandler.updateScale(0),
+});
 
-// UIHandler.initSlider('#obj-scaling-y', {
-//     initialValue: state.model.scale[1],
-//     handlerFn: eventHandler.updateScale(1),
-// });
+UIHandler.initSlider('#obj-scaling-y', {
+    initialValue: state.model.scale[1],
+    handlerFn: eventHandler.updateScale(1),
+});
 
-// UIHandler.initSlider('#obj-scaling-z', {
-//     initialValue: state.model.scale[2],
-//     handlerFn: eventHandler.updateScale(2),
-// });
+UIHandler.initSlider('#obj-scaling-z', {
+    initialValue: state.model.scale[2],
+    handlerFn: eventHandler.updateScale(2),
+});
 
 
-// UIHandler.initRadio('#projection', {
-//     initialValue: state.projectionType,
-//     handlerFn: eventHandler.updateProjectionType(),
-// });
+UIHandler.initRadio('#projection', {
+    initialValue: state.projectionType,
+    handlerFn: eventHandler.updateProjectionType(),
+});
 
 // UIHandler.initButton('#load-model', {
 //     handlerFn: eventHandler.loadModel(),
@@ -452,21 +458,21 @@ setComponentTree(state.model);
 //   handlerFn: eventHandler.toDefaultButtonHandler(),
 // });
 // console.log(state.model)
-state.model.children.push(currentModel2);
+// state.model.children.push(currentModel2);
 // renderSettings.drawCounter += currentModel2.object.indices.length*6;
 
 setComponentTree(state.model);
-const props = webgl.setupProperties(state)
-// console.log(props)
-webgl.draw(state.model, props)
 
+// console.log(state.model);
+// webgl.drawArticulated(state)
+
+webgl
+    .clearBuffer()
+    .setModel(state.model)
+    .render(renderSettings, state);
 // state.model.object = cubeModel2;
 // renderSettings.drawCounter += cubeModel2.indices.length*6;
 // console.log(renderSettings.drawCounter)
-// webgl
-//     .clearBuffer()
-//     .setModel(state.model)
-//     .render(renderSettings, state);
 // const saveToJSON = () => {
 //     let { vertices, colors, normals } = state.model;
 

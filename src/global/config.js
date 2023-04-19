@@ -58,10 +58,10 @@ const CONFIG = {
         out vec4 v_color;
 
         void main() {
-            mat4 viewModelMatrix = viewMatrix * modelMatrix;
+            // mat4 viewModelMatrix = viewMatrix * modelMatrix;
 
             // Multiply the position by the matrix.
-            gl_Position = projectionMatrix * viewModelMatrix * a_position;
+            gl_Position = projectionMatrix * modelMatrix * a_position;
     
             // send the view position to the fragment shader
             // v_modelPosition = vec3(u_modelMatrix * a_position);
@@ -69,9 +69,21 @@ const CONFIG = {
     
             // orient the normals and pass to the fragment shader
             // v_worldNormal = mat3(modelMatrix) * a_normal;
+
+            vec3 ambientLight = vec3(0.5, 0.5, 0.5);
+            vec3 diffuseColor = vec3(1, 1, 1);
+            vec3 lightPosition = normalize(vec3(0.5, 0.5, -2));
+
+            vec4 transformedNormal = normalMatrix * a_normal;
+
+            float cos = max(dot(transformedNormal.xyz, lightPosition), 0.0);
+            lighting = ambientLight + (diffuseColor * cos);
+            
+            v_color = vec4(a_color.rgb * lighting, 1.0);
+            
     
-            // Pass the color to the fragment shader.
-            v_color = a_color;
+            // // Pass the color to the fragment shader.
+            // v_color = a_color;
         }
 
     `,
