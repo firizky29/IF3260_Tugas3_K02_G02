@@ -116,17 +116,17 @@ let state = {
     model: currentModel,
     selectedModel: currentModel,
     projectionType: 'orthographic',
-    useLighting: true,
+    isShading: true,
     fudgeFactor: 0,
     obliqueTetha: Converter.degToRad(45),
     obliquePhi: Converter.degToRad(45),
-    far: -10,
-    near : 10,
-    top: 10,
-    bottom: -10,
-    left: -10,
-    right: 10,
-    zfar: 10,
+    far: -1,
+    near : 1,
+    top: 1,
+    bottom: -1,
+    left: -1,
+    right: 1,
+    zfar: 1,
     znear: 0.01,
     cameraRadius: -0.01,
     cameraRotation: Converter.degToRad(0),
@@ -257,7 +257,7 @@ const eventHandler = {
 
     updateShadingState() {
         return (event) => {
-            state.useLighting = event.target.checked;
+            state.isShading = event.target.checked;
             webgl.drawArticulated(state)
         };
     },
@@ -287,7 +287,7 @@ const eventHandler = {
     //     return (event) => {
     //         document.querySelector('#projection').value = initialState.projectionType;
     //         document.querySelector('#projection').dispatchEvent(new Event('input'));
-    //         document.querySelector('#shading').value = initialState.useLighting;
+    //         document.querySelector('#shading').value = initialState.isShading;
     //         const cameraRadius = document.querySelector('#cameraRadius');
     //         cameraRadius.value = initialState.cameraRadius;
     //         cameraRadius.nextElementSibling.value = initialState.cameraRadius;
@@ -308,7 +308,7 @@ const eventHandler = {
     //             el.value = initialState.scale[idx];
     //             el.nextElementSibling.value = initialState.scale[idx];
     //         });
-    //         document.querySelector('#shading').checked = initialState.useLighting;
+    //         document.querySelector('#shading').checked = initialState.isShading;
     //         state = { ...initialState, model: state.model };
     //         webgl.clearBuffer().render(renderSettings, state);
     //     };
@@ -413,7 +413,7 @@ const generateComponentTree = (model, depth = 0) => {
 setComponentTree(state.model);
 
 UIHandler.initCheckbox('#shading', {
-    initialValue: state.useLighting,
+    initialValue: state.isShading,
     handlerFn: eventHandler.updateShadingState(),
 });
 

@@ -26,11 +26,18 @@ out vec4 outColor;
 void main() {
    vec3 worldNormal = normalize(v_worldNormal);
 
-   vec3 ambientLight = vec3(0.3, 0.3, 0.3);
-   float directionalLight = dot(worldNormal, u_reverseLightDirection);
-   vec3 light = ambientLight + directionalLight;
+   vec3 ambientLight = vec3(0.6, 0.6, 0.6);
+   vec3 diffuseColor = vec3(1, 1, 1);
+   // vec3 lightPosition = normalize(vec3(0.2, 0.4, 1));
 
-   outColor = v_color;
+   // vec3 ambientLight = vec3(0.3, 0.3, 0.3);
+   float directionalLight = max(dot(worldNormal.xyz, u_reverseLightDirection), 0.0);
+   // vec3 light = ambientLight + directionalLight;
+
+   // float cos = max(dot(worldNormal.xyz, lightPosition), 0.0);
+   vec3 light = ambientLight + (diffuseColor * directionalLight);
+
+   
 
    // if(textureMode == 0) {
    //    gl_FragColor = texture2D(u_texture_image, v_textureCoord);
@@ -56,7 +63,9 @@ void main() {
    // }
 
    if(isShading) {
-      outColor.rgb *= light;
+      outColor = vec4(v_color.rgb * light, 1.0);
+   } else {
+      outColor = v_color;
    }
 
 }

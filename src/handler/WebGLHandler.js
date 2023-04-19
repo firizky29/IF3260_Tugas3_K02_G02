@@ -131,11 +131,16 @@ class WebGLHandler {
 		// clone all attribute on props
 		const newProps = {};
 		for (let key in props) {
-			newProps[key] = props[key].clone();
+			// console.log(key)
+			if(key.includes("Matrix")){
+				newProps[key] = props[key].clone();
+			} else {
+				newProps[key] = props[key];
+			}
 		}
 
 		this._updateProperties(model, newProps);
-		console.log(`vertex : ${glProps.glVertices}`)
+		console.log("props", newProps)
 		this._gl.drawArrays(this._gl.TRIANGLES, 0, this._drawCounter);
 
 		return this;
@@ -268,16 +273,9 @@ class WebGLHandler {
 		const viewModelMatrix = modelMatrix.clone()
 			.multiply(viewMatrix.clone());
 		const normalMatrix = viewModelMatrix.inverse().transpose();
+		const isShading = state.isShading;
 
-
-		const uniforms = {
-			projectionMatrix,
-			viewMatrix,
-			modelMatrix,
-			normalMatrix,
-			// cameraPos,
-		}
-
+		const uniforms = {projectionMatrix, viewMatrix, modelMatrix, normalMatrix, cameraPos, isShading}
 		this._setUniforms(uniforms);
 
 		return uniforms;
@@ -324,9 +322,9 @@ class WebGLHandler {
 		this._gl.uniformMatrix4fv(this._glComponent.normalMatrix, false, normalMatrix.flatten());
 		
 		// set uniforms on fragment shader
-		this._gl.uniform1i(this._glComponent.isShading, Number(isShading));
+		this._gl.uniform1i(this._glComponent.isShading, isShading);
 		// this._gl.uniform1i(this._glComponent.textureMode, Number(this.textureMode));
-		this._gl.uniform3fv(this._glComponent.u_reverseLightDirection, GeometryOp.normalize([0.0, 0.0, 1.0]));
+		this._gl.uniform3fv(this._glComponent.u_reverseLightDirection, GeometryOp.normalize([0, 0, -1.0]));
 		// this._gl.uniform3fv(this._glComponent.u_worldCameraPosition, cameraPos);
 
 		// Set texture
