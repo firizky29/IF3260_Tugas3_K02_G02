@@ -1,29 +1,41 @@
 
 
-class Matrix4 {
-    constructor(data?) {
+export default class Matrix4 {
+    constructor() {
         this._rows = 4;
         this._cols = 4;
-        this._data = new Array(this._rows).fill(0).map(() => new Array(this._cols).fill(0));
-        if (data) {
-            this._data = data;
-        }
+        this.identity()
     }
 
     get(row, col) {
+        // console.log(this._data)
         return this._data[row][col];
     }
 
     set(row, col, value) {
         this._data[row][col] = value;
+
+        return this;
     }
 
     getData() {
         return this._data;
     }
 
-    setData() {
+    setData(data) {
+        // console.log(data)
         this._data = data;
+    }
+
+    identity() {
+        this._data = [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ];
+
+        return this;
     }
 
     setDataFromArray(arrData) {
@@ -57,7 +69,7 @@ class Matrix4 {
         return new Matrix4(this._data);
     }
 
-    multiply(matrix: Matrix4) {
+    multiply(matrix) {
         const resMatrix = new Matrix4();
         for (let row = 0; row < this._rows; row++) {
             for (let col = 0; col < this._cols; col++) {
@@ -65,10 +77,13 @@ class Matrix4 {
                 for (let i = 0; i < this._cols; i++) {
                     sum += matrix.get(row, i) * this.get(i, col);
                 }
-                result.set(row, col, sum);
+                resMatrix.set(row, col, sum);
             }
         }
-        this.setData(result.getData());
+        // console.log(resMatrix.getData())
+        this.setData(resMatrix.getData());
+
+        return this;
     }
 
     transpose() {
@@ -78,7 +93,10 @@ class Matrix4 {
                 temp.set(i, j, this.get(j, i));
             }
         }
+        // console.log(temp.getData());
         this.setData(temp.getData());
+
+        return this;
     }
 
 
@@ -117,6 +135,7 @@ class Matrix4 {
     }
 
     _adjugate() {
+        // console.log(this._data)
         let a00 = this._data[0][0],
             a01 = this._data[0][1],
             a02 = this._data[0][2],
@@ -133,7 +152,7 @@ class Matrix4 {
             a31 = this._data[3][1],
             a32 = this._data[3][2],
             a33 = this._data[3][3];
-        return new Matrix4([
+        const adj =  new Matrix4().setData([
             [
                 a11 * a22 * a33 +
                 a12 * a23 * a31 +
@@ -239,22 +258,105 @@ class Matrix4 {
                 a02 * a11 * a20,
             ],
         ]);
+    
+        return adj;
     }
 
     inverse() {
         let det = this._determinant();
-        if (det == 0) {
+        // console.log(det)
+        if (!det) {
             console.log('Matrix is not invertible');
         } else {
             let adj = this._adjugate();
+            console.log("adj",adj)
             for (let i = 0; i < this._rows; i++) {
                 for (let j = 0; j < this._cols; j++) {
-                    adj.setData(i, j, adj.getData(i, j) / det);
+                    // console.log(adj.getData(i, j) / det)
+                    adj.set(i, j, adj.getData(i, j) / det);
                 }
             }
-            return adj;
+            // console.log(adj)
+            // console.log(adj.getData());
+            this.setData(adj.getData());
+
+            return this;
         }
     }
 
-    
+    translate(tx, ty, tz) {
+        const transformMatrix = new Matrix4([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [tx, ty, tz, 1],
+        ]);
+
+        return this.multiply(transformMatrix);
+    }
+
+    rotateX(angleInRadians) {
+        const cosVal = Math.cos(angleInRadians);
+        const sinVal = Math.sin(angleInRadians);
+
+        const transformMatrix = new Matrix4([
+            [1, 0, 0, 0],
+            [0, cosVal, sinVal, 0],
+            [0, -sinVal, cosVal, 0],
+            [0, 0, 0, 1],
+        ]);
+
+        return this.multiply(transformMatrix);
+    }
+
+    rotateY(angleInRadians) {
+        const cosVal = Math.cos(angleInRadians);
+        const sinVal = Math.sin(angleInRadians);
+
+        const transformMatrix = new Matrix4([
+            [cosVal, 0, -sinVal, 0],
+            [0, 1, 0, 0],
+            [sinVal, 0, cosVal, 0],
+            [0, 0, 0, 1],
+        ]);
+
+        return this.multiply(transformMatrix);
+    }
+
+    rotateZ(angleInRadians) {
+        const cosVal = Math.cos(angleInRadians);
+        const sinVal = Math.sin(angleInRadians);
+
+        const transformMatrix = new Matrix4([
+            [cosVal, sinVal, 0, 0],
+            [-sinVal, cosVal, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]);
+
+        return this.multiply(transformMatrix);
+    }
+
+    rotate(xAngleInRadians, yAngleInRadians, zAngleInRadians) {
+        return this.rotateX(xAngleInRadians)
+                    .rotateY(yAngleInRadians)
+                    .rotateZ(zAngleInRadians);
+    }
+
+    scale(sx, sy, sz) {
+        const transformMatrix = new Matrix4([
+            [sx, 0, 0, 0],
+            [0, sy, 0, 0],
+            [0, 0, sz, 0],
+            [0, 0, 0, 1],
+        ]);
+
+        return this.multiply(transformMatrix);
+    }
+
+    transform(translation, rotation, scale) {
+        return this.translate(translation[0], translation[1], translation[2])
+                    .rotate(rotation[0], rotation[1], rotation[2])
+                    .scale(scale[0], scale[1], scale[2]);
+    }
 }

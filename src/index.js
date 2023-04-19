@@ -343,50 +343,50 @@ const eventHandler = {
     },
 };
 
-UIHandler.initSlider('#obj-translation-x', {
-    initialValue: state.model.translation[0],
-    handlerFn: eventHandler.updatePosition(0),
-});
+// UIHandler.initSlider('#obj-translation-x', {
+//     initialValue: state.model.translation[0],
+//     handlerFn: eventHandler.updatePosition(0),
+// });
 
-UIHandler.initSlider('#obj-translation-y', {
-    initialValue: state.model.translation[1],
-    handlerFn: eventHandler.updatePosition(1),
-});
+// UIHandler.initSlider('#obj-translation-y', {
+//     initialValue: state.model.translation[1],
+//     handlerFn: eventHandler.updatePosition(1),
+// });
 
-UIHandler.initSlider('#obj-translation-z', {
-    initialValue: state.model.translation[2],
-    handlerFn: eventHandler.updatePosition(2),
-});
+// UIHandler.initSlider('#obj-translation-z', {
+//     initialValue: state.model.translation[2],
+//     handlerFn: eventHandler.updatePosition(2),
+// });
 
-UIHandler.initSlider('#obj-rotation-x', {
-    initialValue: state.model.rotation[0],
-    handlerFn: eventHandler.updateRotation(0),
-});
+// UIHandler.initSlider('#obj-rotation-x', {
+//     initialValue: state.model.rotation[0],
+//     handlerFn: eventHandler.updateRotation(0),
+// });
 
-UIHandler.initSlider('#obj-rotation-y', {
-    initialValue: state.model.rotation[1],
-    handlerFn: eventHandler.updateRotation(1),
-});
+// UIHandler.initSlider('#obj-rotation-y', {
+//     initialValue: state.model.rotation[1],
+//     handlerFn: eventHandler.updateRotation(1),
+// });
 
-UIHandler.initSlider('#obj-rotation-z', {
-    initialValue: state.model.rotation[2],
-    handlerFn: eventHandler.updateRotation(2),
-});
+// UIHandler.initSlider('#obj-rotation-z', {
+//     initialValue: state.model.rotation[2],
+//     handlerFn: eventHandler.updateRotation(2),
+// });
 
-UIHandler.initSlider('#obj-scaling-x', {
-    initialValue: state.model.scale[0],
-    handlerFn: eventHandler.updateScale(0),
-});
+// UIHandler.initSlider('#obj-scaling-x', {
+//     initialValue: state.model.scale[0],
+//     handlerFn: eventHandler.updateScale(0),
+// });
 
-UIHandler.initSlider('#obj-scaling-y', {
-    initialValue: state.model.scale[1],
-    handlerFn: eventHandler.updateScale(1),
-});
+// UIHandler.initSlider('#obj-scaling-y', {
+//     initialValue: state.model.scale[1],
+//     handlerFn: eventHandler.updateScale(1),
+// });
 
-UIHandler.initSlider('#obj-scaling-z', {
-    initialValue: state.model.scale[2],
-    handlerFn: eventHandler.updateScale(2),
-});
+// UIHandler.initSlider('#obj-scaling-z', {
+//     initialValue: state.model.scale[2],
+//     handlerFn: eventHandler.updateScale(2),
+// });
 
 
 // UIHandler.initRadio('#projection', {
@@ -397,9 +397,9 @@ UIHandler.initSlider('#obj-scaling-z', {
 // UIHandler.initButton('#load-model', {
 //     handlerFn: eventHandler.loadModel(),
 // });
-UIHandler.initButton('#save-model', {
-    handlerFn: eventHandler.saveModel(),
-});
+// UIHandler.initButton('#save-model', {
+//     handlerFn: eventHandler.saveModel(),
+// });
 
 // generate button tree
 const setComponentTree = (model) => {
@@ -453,13 +453,12 @@ setComponentTree(state.model);
 // });
 // console.log(state.model)
 state.model.children.push(currentModel2);
-renderSettings.drawCounter += currentModel2.object.indices.length*6;
+// renderSettings.drawCounter += currentModel2.object.indices.length*6;
 
 setComponentTree(state.model);
-webgl
-    .clearBuffer()
-    .setModel(state.model)
-    .render(renderSettings, state);
+const props = webgl.setupProperties(state)
+// console.log(props)
+webgl.draw(state.model, props)
 
 // state.model.object = cubeModel2;
 // renderSettings.drawCounter += cubeModel2.indices.length*6;
