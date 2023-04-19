@@ -1,11 +1,38 @@
-import { WebGLProgramInfo } from '../WebGLProgramInfo.js';
 
 class ModelComponent {
   constructor(gl, program, objectModel) {
     this.gl = gl;
     this.program = program;
-    this.programInfo = new WebGLProgramInfo(gl, canvas, program);
+    this.programInfo = {
+      vertexLoc: {
+        a_position: this.gl.getAttribLocation(this.program, "a_position"),
+        a_color: this.gl.getAttribLocation(this.program, "a_color"),
+        a_normal: this.gl.getAttribLocation(this.program, "a_normal"),
+        a_tangent: this.gl.getAttribLocation(this.program, "a_tangent"),
+        a_bitangent: this.gl.getAttribLocation(this.program, "a_bitangent"),
+        a_textureCoord: this.gl.getAttribLocation(this.program, "a_texCoord"),
+        u_projectionMat: this.gl.getUniformLocation(this.program, "u_projectionMat"),
+        u_viewMat: this.gl.getUniformLocation(this.program, "u_viewMat"),
+        u_modelMat: this.gl.getUniformLocation(this.program, "u_modelMat"),
+        u_normalMat: this.gl.getUniformLocation(this.program, "u_normalMat"),
+      },
+      fragmentLoc: {
+        isShading: this.gl.getUniformLocation(this.program, "isShading"),
+        textureMode: this.gl.getUniformLocation(this.program, "textureMode"),
+        u_reverseLightDir: this.gl.getUniformLocation(this.program, "u_reverseLightDirection"),
+        u_worldCameraPos: this.gl.getUniformLocation(this.program, "u_worldCameraPosition"),
+        u_texture_image: this.gl.getUniformLocation(this.program, "u_texture_image"),
+        u_texture_env: this.gl.getUniformLocation(this.program, "u_texture_environment"),
+        u_texture_bump : this.gl.getUniformLocation(this.program, "u_texture_bump"),
+      }
+    }
     this.objectModel = objectModel;
+
+    this.translation = [0, 0, 0];
+    this.rotation = [0, 0, 0];
+    this.scale = [1, 1, 1];
+
+    this.textureMode = -1;
 
     this.positionBuffer = this.gl.createBuffer();
     this.colorBuffer = this.gl.createBuffer();
@@ -60,7 +87,7 @@ class ModelComponent {
     let totalVertices = positions.length / 3;
     let vector = getVectorInfo(positions);
 
-    // Set up the properties   
+    // Set up the properties
     this.totalVertices = totalVertices;
     this.positions = positions;
     this.colors = colors;
@@ -70,11 +97,11 @@ class ModelComponent {
     this.textureCoords = textureCoordinates;
 
     // set up texture
-    this.textures = {
-      image: TextureMap.imageMap(this.gl),
-      environment: TextureMap.envMap(this.gl),
-      bump: TextureMap.bumpMap(this.gl)
-    };
+    // this.textures = {
+    //   image: TextureMap.imageMap(this.gl),
+    //   environment: TextureMap.envMap(this.gl),
+    //   bump: TextureMap.bumpMap(this.gl)
+    // };
   }
 
   bindBuffers() {
@@ -92,17 +119,17 @@ class ModelComponent {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.normals), gl.STATIC_DRAW);
 
-    // bind Tangent buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.tangents), gl.STATIC_DRAW);
+    // // bind Tangent buffer
+    // gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.tangents), gl.STATIC_DRAW);
 
-    // bind Bitangent buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.bitangentBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.bitangents), gl.STATIC_DRAW);
+    // // bind Bitangent buffer
+    // gl.bindBuffer(gl.ARRAY_BUFFER, this.bitangentBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.bitangents), gl.STATIC_DRAW);
 
-    // bind TextureCoord buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.textureCoords), gl.STATIC_DRAW);
+    // // bind TextureCoord buffer
+    // gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.textureCoords), gl.STATIC_DRAW);
   }
 
   setBuffers() {
@@ -144,41 +171,41 @@ class ModelComponent {
       0
     );
 
-    // set Tangent buffer
-    gl.enableVertexAttribArray(this.programInfo.vertexLoc.a_tangent);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBuffer);
-    gl.vertexAttribPointer(
-      this.programInfo.vertexLoc.a_tangent,
-      3,
-      gl.FLOAT,
-      false,
-      0,
-      0
-    );
+    // // set Tangent buffer
+    // gl.enableVertexAttribArray(this.programInfo.vertexLoc.a_tangent);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentBuffer);
+    // gl.vertexAttribPointer(
+    //   this.programInfo.vertexLoc.a_tangent,
+    //   3,
+    //   gl.FLOAT,
+    //   false,
+    //   0,
+    //   0
+    // );
 
-    // set Bitangent buffer
-    gl.enableVertexAttribArray(this.programInfo.vertexLoc.a_bitangent);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.bitangentBuffer);
-    gl.vertexAttribPointer(
-      this.programInfo.vertexLoc.a_bitangent,
-      3,
-      gl.FLOAT,
-      false,
-      0,
-      0
-    );
+    // // set Bitangent buffer
+    // gl.enableVertexAttribArray(this.programInfo.vertexLoc.a_bitangent);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, this.bitangentBuffer);
+    // gl.vertexAttribPointer(
+    //   this.programInfo.vertexLoc.a_bitangent,
+    //   3,
+    //   gl.FLOAT,
+    //   false,
+    //   0,
+    //   0
+    // );
 
-    // set TextureCoord buffer
-    gl.enableVertexAttribArray(this.programInfo.vertexLoc.a_textureCoord);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
-    gl.vertexAttribPointer(
-      this.programInfo.vertexLoc.a_textureCoord,
-      2,
-      gl.FLOAT,
-      false,
-      0,
-      0
-    );
+    // // set TextureCoord buffer
+    // gl.enableVertexAttribArray(this.programInfo.vertexLoc.a_textureCoord);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
+    // gl.vertexAttribPointer(
+    //   this.programInfo.vertexLoc.a_textureCoord,
+    //   2,
+    //   gl.FLOAT,
+    //   false,
+    //   0,
+    //   0
+    // );
   }
 
   // projectionMat, viewMat, modelMat : Matrix4
@@ -187,43 +214,41 @@ class ModelComponent {
     this.gl.uniformMatrix4fv(this.programInfo.vertexLoc.u_projectionMat, false, projectionMat.getData());
     this.gl.uniformMatrix4fv(this.programInfo.vertexLoc.u_viewMat, false, viewMat.getData());
     this.gl.uniformMatrix4fv(this.programInfo.vertexLoc.u_modelMat, false, modelMat.getData());
-    const normalMat = Matrix4.inverseTranspose(Matrix4.multiply(viewMat, modelMat));
+    const normalMat = modelMat.clone().multiply(viewMat.clone()).inverseTranspose();
     this.gl.uniformMatrix4fv(this.programInfo.vertexLoc.u_normalMat, false, normalMat.getData());
     
     // set uniforms on fragment shader
-    this.gl.uniform3fv(this.programInfo.fragmentLoc.u_reverseLightDir, normalize([0.2, 0.4, 1]));
+    this.gl.uniform3fv(this.programInfo.fragmentLoc.u_reverseLightDir, GeometryOp.normalize([0.0, 0.0, 1.0]));
     this.gl.uniform3fv(this.programInfo.fragmentLoc.worldCameraPosition, cameraPos);
     this.gl.uniform1i(this.programInfo.fragmentLoc.isShading, Number(isShading));
-    this.gl.uniform1i(this.programInfo.fragmentLoc.textureMode, Number(this.textureMode));
+    // this.gl.uniform1i(this.programInfo.fragmentLoc.textureMode, Number(this.textureMode));
 
     // Set texture
     // image
-    this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_image, 0);
-    this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.image);
-    // environment
-    this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_env, 1);
-    this.gl.activeTexture(this.gl.TEXTURE1);
-    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.textures.environment);
-    // bump
-    this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_bump, 2);
-    this.gl.activeTexture(this.gl.TEXTURE2);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.bump);
+    // this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_image, 0);
+    // this.gl.activeTexture(this.gl.TEXTURE0);
+    // this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.image);
+    // // environment
+    // this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_env, 1);
+    // this.gl.activeTexture(this.gl.TEXTURE1);
+    // this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.textures.environment);
+    // // bump
+    // this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_bump, 2);
+    // this.gl.activeTexture(this.gl.TEXTURE2);
+    // this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.bump);
   }
 
   drawObject(projectionMat, viewMat, modelMat, cameraPos, isShading) {
 
     this.gl.useProgram(this.program);
-    this.bind();
+    this.bindBuffers();
     this.setBuffers();
 
     let newModelMat = modelMat.clone();
     newModelMat.transform(this.translation, this.rotation, this.scale);
     
-    this.setUniforms(projectionMat, viewMat, newModelMat, cameraPos, isShading);
+    this.setUniform(projectionMat, viewMat, newModelMat, cameraPos, isShading);
 
     this.gl.drawArrays(this.gl.TRIANGLES, 0, this.totalVertices);
   }
 }
-
-export default ModelComponent;

@@ -1,29 +1,46 @@
 // set gl on canvas
-export function getWebGLContext(canvas) {
+function getWebGLContext(canvas) {
   const gl = canvas.getContext("webgl");
   if (!gl) alert("WebGL isn't available on current browser.");
   return gl;
 }
 
-async function fetchShader(path) {
+async function fetchShader(filename) {
   try {
-    const res = await fetch(`../shaders/${path}`);
+    const res = await fetch(`./shaders/${filename}`);
     const shader = await res.text();
     return shader;
+
   } catch (e) {
-    console.error(`Failed to fetch shader at ${url}: ${e}`);
+    console.log(`Failed to fetch shader at ${url}: ${e}`);
   }
 }
 
+// create shader
+function createShader(gl, type, source) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    console.log("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));
+    gl.deleteShader(shader);
+    return -1;
+  }
+  return shader;
+}
+
 // create program
-export function createProgram(gl) {
+async function createProgram(gl) {
   // set up vertex shader
   const vertexShaderPath = "vertex_shader.glsl";
-  var vertexShader = createShader(gl, gl.VERTEX_SHADER, fetchShader(vertexShaderPath));
+  const vertexShaderScript = await fetchShader(vertexShaderPath);
+  var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderScript);
 
   // set up fragment shader
   const fragmentShaderPath = "fragment_shader.glsl";
-  var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fetchShader(fragmentShaderPath));
+  const fragmentShaderScript = await fetchShader(fragmentShaderPath);
+  var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderScript);
 
   // create program
   const program = gl.createProgram();

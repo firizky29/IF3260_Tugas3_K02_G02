@@ -1,6 +1,4 @@
-
-
-export default class Matrix4 {
+class Matrix4 {
     constructor(data) {
         this._rows = 4;
         this._cols = 4;
@@ -82,6 +80,7 @@ export default class Matrix4 {
         return cloneMatrix;
     }
 
+    // matrix * this.matrix
     multiply(matrix) {
         const resMatrix = new Matrix4();
         for (let row = 0; row < this._rows; row++) {
@@ -111,10 +110,6 @@ export default class Matrix4 {
 
         return this;
     }
-
-
-
-
 
     inverse() {
         var a00 = this.get(0, 0),
@@ -168,6 +163,12 @@ export default class Matrix4 {
         this.set(3, 3, (a20 * b03 - a21 * b01 + a22 * b00) * det);
         
         // console.log(this);
+        return this;
+    }
+
+    inverseTranspose() {
+        this.inverse();
+        this.transpose();
         return this;
     }
 
