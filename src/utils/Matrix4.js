@@ -149,10 +149,6 @@ export default class Matrix4 {
 
         var det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
-        if (!det) {
-            return null;
-        }
-
         det = 1.0 / det;
         this.set(0, 0, (a11 * b11 - a12 * b10 + a13 * b09) * det);
         this.set(0, 1, (a02 * b10 - a01 * b11 - a03 * b09) * det);
