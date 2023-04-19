@@ -86,5 +86,13 @@ const GeometryOp = {
             count += this.countSubtreeSize(child)
         }
         return count;
+    },
+
+    lerp(a, b, t){
+        let res = []
+        for(let i = 0; i < a.length; i++){
+            res.push(a[i] + t * (b[i] - a[i]));
+        }
+        return res;
     }
 }

@@ -5,16 +5,20 @@ class AnimationBuilder {
         this.webgl = webgl;
         this.frames = [];
         this.currentFrame = [];
-        this.isPlaying = true;
+        this.keyframes = [];
+        this.isPlaying = false;
     }
 
     addState(model) {
         // console.log("size", GeometryOp.countSubtreeSize(model))
         this.currentFrame = new Array(GeometryOp.countSubtreeSize(model));
         this.addTransformation(model)
+        if(this.frames.length != 0){
+            const lerpFrames = this.lerpFrames(this.frames[this.frames.length-1], this.currentFrame)
+            this.frames = this.frames.concat(lerpFrames)
+        }
         this.frames.push(this.currentFrame)
-        // this.currentFrame[0] = 0;
-        // console.log(this.currentFrame)
+        console.log(this.frames)
     }
 
     addTransformation(model, idx = 0) {
@@ -47,13 +51,11 @@ class AnimationBuilder {
         if(idx >= this.frames.length){
             idx = idx%this.frames.length;
         }
-        // window request animation
         let model = state.model;
-        // console.log("state sebelum update", state.model)
         this._applyFrame(model, this.frames[idx]);
-        // state.model = model;
-        // console.log("state", state.model)
-        // console.log("frames", this.frames[idx]);
+        state.model = model;
+        // console.log(state.model)
+
         this.webgl.drawArticulated(state)
         idx ++;
         window.requestAnimationFrame(() => this.playFrames(state, idx))
@@ -67,8 +69,6 @@ class AnimationBuilder {
         model.subtree_translate = frame[idx].subtree_translate;
         model.subtree_rotate = frame[idx].subtree_rotate;
         model.subtree_scale = frame[idx].subtree_scale;
-        // console.log("model", model)
-        // console.log(model)
         idx ++;
         for(let i = 0; i < model.children.length; i++) {
             this._applyFrame(model.children[i], frame, idx)
@@ -76,8 +76,23 @@ class AnimationBuilder {
         }
     }
 
-    lerpFrames(frame1, frame2, idx=0, cnt=10) {
-        
+    lerpFrames(frame1, frame2, cnt=100) {
+        let lerpFrames = []
+        for(let i = 1; i <= cnt; i++) {
+            let frame = new Array(frame1.length);
+            for(let j=0; j<frame1.length; j++){
+                frame[j] = {
+                    translation: GeometryOp.lerp(frame1[j].translation, frame2[j].translation, i/(cnt+1)),
+                    rotation: GeometryOp.lerp(frame1[j].rotation, frame2[j].rotation, i/(cnt+1)),
+                    scale: GeometryOp.lerp(frame1[j].scale, frame2[j].scale, i/(cnt+1)),
+                    subtree_translate: GeometryOp.lerp(frame1[j].subtree_translate, frame2[j].subtree_translate, i/(cnt+1)),
+                    subtree_rotate: GeometryOp.lerp(frame1[j].subtree_rotate, frame2[j].subtree_rotate, i/(cnt+1)),
+                    subtree_scale: GeometryOp.lerp(frame1[j].subtree_scale, frame2[j].subtree_scale, i/(cnt+1)),
+                }    
+            }
+            lerpFrames.push(frame);
+        }
+        return lerpFrames;
     }
         
 }

@@ -45,7 +45,7 @@ void main() {
   v_color = a_color;
   v_modelPosition = vec3(modelMatrix * a_position);
   v_viewModelPosition = vec3(vm * a_position);
-  v_worldNormal = mat3(modelMatrix) * a_normal;
+  v_worldNormal = mat3(normalMatrix) * a_normal;
   // v_textureCoord = a_texCoord;
 
   // Bump mapping variables
