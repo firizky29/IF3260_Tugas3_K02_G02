@@ -1,10 +1,9 @@
 
-
 class Matrix4 {
-    constructor(data?) {
+    constructor(data) {
         this._rows = 4;
         this._cols = 4;
-        this._data = new Array(this._rows).fill(0).map(() => new Array(this._cols).fill(0));
+        this._data = new Array(this._rows * this._cols).fill(0);
         if (data) {
             this._data = data;
         }
@@ -57,8 +56,7 @@ class Matrix4 {
         return new Matrix4(this._data);
     }
 
-    multiply(matrix: Matrix4) {
-        const resMatrix = new Matrix4();
+    multiply(matrix) {
         for (let row = 0; row < this._rows; row++) {
             for (let col = 0; col < this._cols; col++) {
                 let sum = 0;
