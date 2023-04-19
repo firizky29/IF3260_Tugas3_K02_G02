@@ -44,7 +44,7 @@ const GeometryOp = {
             sum += u[i] * u[i]
         }
         if(sum == 0){
-            return u;
+            return [0, 0, 0];
         }
         sum = Math.sqrt(sum)
         for(let i = 0; i < u.length; i++){
@@ -80,3 +80,5 @@ const GeometryOp = {
         return this.normalize(this.cross(a, b))
     }
 }
+
+export default GeometryOp

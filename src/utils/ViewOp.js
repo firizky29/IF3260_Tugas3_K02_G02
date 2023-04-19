@@ -22,11 +22,13 @@ const ViewOp = {
         fovInRad = Converter.degToRad(60);
         const fov = Math.tan(Math.PI * 0.5 - 0.5 * fovInRad);
 
-        near = -1;
+        near = 0.1;
         far = 5;
         const rangeInv = 1 / (near - far);
-        console.log(fovInRad, aspect, near, far)
+        // console.log(fovInRad, aspect, near, far)
         // console.log((near+far)/(near-far));
+        // const orthographicMatrix = ViewOp.orthographic(-1, 1, -1, 1, near, far);
+
         return new Matrix4([
             [fov / aspect, 0, 0, 0],
             [0, fov, 0, 0],
@@ -61,7 +63,9 @@ const ViewOp = {
             [0, 0, 0, 1],
         ]);
 
-        return orthographicMatrix.multiply(obliqueMatrix);
+        // return obliqueMatrix
+        obliqueMatrix.multiply(orthographicMatrix);
+        return obliqueMatrix;
     },
 
 };

@@ -75,9 +75,9 @@ let currentModel = {
     translation: [0, 0, 0],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
-    child_translate: [0, 0, 0],
-    child_rotate: [0, 0, 0],
-    child_scale: [1, 1, 1],
+    subtree_translate: [0, 0, 0],
+    subtree_rotate: [0, 0, 0],
+    subtree_scale: [1, 1, 1],
     children: []
 }
 
@@ -88,9 +88,9 @@ let currentModel2 = {
     translation: [0, 0, 0],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
-    child_translate: [0, 0, 0],
-    child_rotate: [0, 0, 0],
-    child_scale: [1, 1, 1],
+    subtree_translate: [0, 0, 0],
+    subtree_rotate: [0, 0, 0],
+    subtree_scale: [1, 1, 1],
     children: []
 }
 
@@ -98,18 +98,20 @@ let currentModel2 = {
 let state = {
     model: currentModel,
     selectedModel: currentModel,
-    projectionType: 'perspective',
+    projectionType: 'orthographic',
     useLighting: true,
     fudgeFactor: 0,
-    obliqueTetha: Converter.degToRad(63.5),
-    obliquePhi: Converter.degToRad(63.5),
-    far: -1,
-    near : 1,
+    obliqueTetha: Converter.degToRad(45),
+    obliquePhi: Converter.degToRad(45),
+    far: -5,
+    near : 5,
     top: 1,
     bottom: -1,
     left: -1,
     right: 1,
-    cameraRadius: 0,
+    zfar: 5,
+    znear: 0.01,
+    cameraRadius: -0.01,
     cameraRotation: Converter.degToRad(0),
 };
 
@@ -124,10 +126,9 @@ const eventHandler = {
     updatePosition(index) {
         return (event, value) => {
             // state.animation = false;
-            state.model.translation[index] = value;
+            state.selectedModel.translation[index] = value;
             webgl
-                .clearBuffer()
-                .render(renderSettings, state);
+                .drawArticulated(state)
         };
     },
 
@@ -136,20 +137,18 @@ const eventHandler = {
             // state.animation = false;
             const angleInDegrees = value;
             const angleInRadians = Converter.degToRad(angleInDegrees);
-            state.model.rotation[index] = angleInRadians;
+            state.selectedModel.rotation[index] = angleInRadians;
             webgl
-                .clearBuffer()
-                .render(renderSettings, state);
+                .drawArticulated(state)
         };
     },
 
     updateScale(index) {
         return (event, value) => {
             // state.animation = false;
-            state.model.scale[index] = value;
+            state.selectedModel.scale[index] = value;
             webgl
-                .clearBuffer()
-                .render(renderSettings, state);
+                .drawArticulated(state)
         };
     },
 
@@ -245,22 +244,7 @@ const eventHandler = {
     updateProjectionType() {
         return (event) => {
             state.projectionType = event.target.value;
-
-            if (state.projectionType === 'perspective') {
-                state.fudgeFactor = 0.3;
-            } else {
-                state.fudgeFactor = 0;
-            }
-
-            if (state.projectionType === 'oblique') {
-                state.obliqueTetha = Converter.degToRad(63.5);
-                state.obliquePhi = Converter.degToRad(63.5);
-            } else {
-                state.obliqueTetha = 0;
-                state.obliquePhi = 0;
-            }
-
-            webgl.clearBuffer().render(renderSettings, state);
+            webgl.drawArticulated(state)
         };
     },
 
@@ -274,14 +258,14 @@ const eventHandler = {
     updateCameraRadius() {
         return (event, value) => {
             state.cameraRadius = value;
-            webgl.clearBuffer().render(renderSettings, state);
+            webgl.drawArticulated(state)
         };
     },
 
     updateCameraRotation() {
         return (event, value) => {
             state.cameraRotation = Converter.degToRad(value);
-            webgl.clearBuffer().render(renderSettings, state);
+            webgl.drawArticulated(state)
         };
     },
 
@@ -315,7 +299,7 @@ const eventHandler = {
                 fudgeFactor: 0,
                 obliqueTetha: 0,
                 obliquePhi: 0,
-                cameraRadius: -1.3,
+                cameraRadius: -0.01,
                 cameraRotation: Converter.degToRad(0),
                 animation: false,
             };
@@ -444,32 +428,33 @@ setComponentTree(state.model);
 //     handlerFn: eventHandler.updateShadingState(),
 // });
 
-// UIHandler.initSlider('#camera-view', {
-//     initialValue: state.cameraRadius,
-//     handlerFn: eventHandler.updateCameraRadius(),
-// });
+UIHandler.initSlider('#camera-view', {
+    initialValue: state.cameraRadius,
+    handlerFn: eventHandler.updateCameraRadius(),
+});
 
-// UIHandler.initSlider('#camera-rotate', {
-//     initialValue: state.cameraRotation,
-//     handlerFn: eventHandler.updateCameraRotation(),
-// });
+UIHandler.initSlider('#camera-rotate', {
+    initialValue: state.cameraRotation,
+    handlerFn: eventHandler.updateCameraRotation(),
+});
 
 // UIHandler.initButton('button#toDefault', {
 //   handlerFn: eventHandler.toDefaultButtonHandler(),
 // });
 // console.log(state.model)
-// state.model.children.push(currentModel2);
+state.model.children.push(currentModel2);
 // renderSettings.drawCounter += currentModel2.object.indices.length*6;
 
 setComponentTree(state.model);
 
-// console.log(state.model);
-// webgl.drawArticulated(state)
+// console.log(state.cameraRadius)
 
-webgl
-    .clearBuffer()
-    .setModel(state.model)
-    .render(renderSettings, state);
+webgl.drawArticulated(state)
+
+// webgl
+//     .clearBuffer()
+//     .setModel(state.model)
+//     .render(renderSettings, state);
 // state.model.object = cubeModel2;
 // renderSettings.drawCounter += cubeModel2.indices.length*6;
 // console.log(renderSettings.drawCounter)

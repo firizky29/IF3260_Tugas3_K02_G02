@@ -12,6 +12,7 @@ const Render = {
                 colors.push(rectColor[j])
                 normals.push(normal[j])
             }
+            colors.push(rectColor[3])
         }
     }
 }
