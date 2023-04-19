@@ -22,6 +22,7 @@ const UIHandler = {
 	},
 
 	initButton(buttonSelector, options) {
+        console.log("buttonSelector", buttonSelector)
 		const button = document.querySelector(buttonSelector);
 		let { handlerFn } = options;
 
@@ -41,5 +42,3 @@ const UIHandler = {
 		});
 	},
 };
-
-export default UIHandler;
