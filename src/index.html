@@ -7,6 +7,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="shortcut icon" href="./assets/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="style.css" />
+  <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-aFq/bzH65dt+w6FI2ooMVUpc+21e0SRygnTpmBvdBgSdnuTN7QbdgL+OapgHtvPp"
+      crossorigin="anonymous"
+    />
   <title>3D Articulated Model</title>
   <script src="./utils/webglUtils.js"></script>
   <!-- <script src="./utils/Matrix4.js"></script>
@@ -40,7 +46,14 @@
           </button>
           <div id="user-guide">
             <button id="clear">Reset</button>
-            <button id="help">Help</button>
+            <!-- <button id="help">Help</button> -->
+            <button
+                id="help"
+                data-bs-toggle="modal"
+                data-bs-target="#modal-help"
+              >
+                Help
+              </button>
           </div>
           <div id="projection-tool">
             <label for="projection">Proyeksi</label>
@@ -212,6 +225,97 @@
         </div>
       </div>
     </div>
+
+    <!-- modal -->
+    <div
+    class="modal fade"
+    id="modal-help"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modal-help"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modal-help-label">Help Menu</h5>
+          <button data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h3>Menyimpan File Model Articulated Object</h3>
+          <ul>
+            <li>
+              Untuk menyimpan file articulated object yang ada pada canvas saat ini, tekan tombol
+              <b>Save Model</b> di menu.
+            </li>
+          </ul>
+          <h3>Membuka File Model Articulated Object</h3>
+          <ul>
+            <li>Canvas kosong ketika pertama kali web dibuka</li>
+            <li>
+              Untuk membuka file articulated object, tekan tombol
+              <b>Load Model</b> atau <b>Load Model as Children</b> di menu. Pilih file json yang ada di dalam
+              <b>/src/models</b>.
+            </li>
+          </ul>
+          <h3>Me-reset Object Menjadi Semula</h3>
+          <ul>
+            <li>Tekan tombol <b>Reset</b>.</li>
+          </ul>
+          <h3>Mengubah Jenis Proyeksi</h3>
+          <ul>
+            <li>
+              Pilih jenis proyeksi dari <b>dropdown menu</b> di opsi yang
+              di bagian proyeksi aplikasi.
+            </li>
+          </ul>
+          <h3>Memulai Animasi Pada Objek</h3>
+          <ul>
+            <li>Tekan tombol <b>Play</b> untuk memulai animasi.</li>
+            <li>Tekan tombol <b>Pause</b> untuk menghentikan animasi.</li>
+            <li>Tekan tombol <b><</b> untuk mundur 1 frame.</li>
+            <li>Tekan tombol <b>></b> untuk maju 1 frame.</li>
+            <li>Tekan tombol <b><<</b> untuk ke frame awal.</li>
+            <li>Tekan tombol <b>>></b> untuk ke frame akhir.</li>
+          </ul>
+          <h3>Mengaktifkan dan menonaktifkan shading</h3>
+          <ul>
+            <li>
+              Nyalakan shading dengan memilih <b>checkbox</b> shading.
+            </li>
+          </ul>
+          <h3>Mengubah Jenis Texture</h3>
+          <ul>
+            <li>
+              Pilih jenis texture dari <b>dropdown menu</b> di opsi yang
+              texture aplikasi.
+            </li>
+          </ul>
+          <h3>Manipulasi Kamera</h3>
+          <ul>
+            <li>
+              Manipulasi kamera dengan menggerakkan <b>slider</b> untuk
+              rotasi kamera dan radius kamera.
+            </li>
+          </ul>
+          <h3>Melakukan Rotasi, Translasi dan Scaling dari Objek dan Component</h3>
+          <ul>
+            <li>Untuk manipulasi objek gunakan slider pada bagian kiri yang memiliki title <b>Object</b></li>
+            <li>Untuk manipulasi component gunakan slider pada bagian kiri yang memiliki title <b>Component</b></li>
+            <li>
+              Atur rotasi, translasi, dan scaling dari sumbu x, y, dan z
+              objek dengan <b>slider</b> yang ada di opsi.
+            </li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+
     <div id="help-container">
       <div id="help-content">
         <span id="close">&times;</span>
@@ -235,6 +339,12 @@
       </div>
     </div>
   </div>
+
+  <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-qKXV1j0HvMUeCBQ+QVp7JcfGl760yU08IQ+GpUo5hlbpg51QRiuqHAJz8+BrxE/N"
+      crossorigin="anonymous"
+    ></script>
 </body>
 
 </html>
