@@ -567,10 +567,10 @@ export default class WebGLHandler {
 		matrix.transform(state.model.translation, state.model.rotation, state.model.scale);
 		let projectionMatrix = this.getProjectionMatrix(state.projectionType, state)
 
-		// console.log(matrix)
-		for (let i = 0; i < state.model.object.vertices.length; i++) {
+		// console.log(projectionMatrix)
+		// for (let i = 0; i < state.model.object.vertices.length; i++) {
 			const project = projectionMatrix.clone().transpose();
-			let vertex = state.model.object.vertices[i];
+			let vertex = state.model.object.vertices[0];
 			// multiply by projection matrix
 			let vertex2 = []
 			for (let j = 0; j < 4; j++) {
@@ -585,7 +585,8 @@ export default class WebGLHandler {
 				vertex2[j] = sum;
 			}
 			console.log(vertex, vertex2)
-		}
+		// }
+		// console.log("Projection setelah perubahan", projectionMatrix)
 
 
 

@@ -25,6 +25,7 @@ const ViewOp = {
         near = -1;
         far = 5;
         const rangeInv = 1 / (near - far);
+        console.log(fovInRad, aspect, near, far)
         // console.log((near+far)/(near-far));
         return new Matrix4([
             [fov / aspect, 0, 0, 0],

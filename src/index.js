@@ -98,7 +98,7 @@ let currentModel2 = {
 let state = {
     model: currentModel,
     selectedModel: currentModel,
-    projectionType: 'orthographic',
+    projectionType: 'perspective',
     useLighting: true,
     fudgeFactor: 0,
     obliqueTetha: Converter.degToRad(63.5),
