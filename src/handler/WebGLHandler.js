@@ -75,7 +75,7 @@ class WebGLHandler {
 		this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
 		this._gl.scissor(0, 0, this._gl.canvas.width, this._gl.canvas.height);
 
-		this._gl.clearColor(255, 255, 255, 1); // clear to canvas default color (white)
+		this._gl.clearColor(0, 0, 0, 1); // clear to canvas default color (white)
 		this._gl.clearDepth(1);
 		this._gl.enable(this._gl.DEPTH_TEST);
 		this._gl.depthFunc(this._gl.LEQUAL);
@@ -126,7 +126,7 @@ class WebGLHandler {
 		}
 
 		this._updateProperties(model, newProps);
-		console.log(`counter : ${this._drawCounter}`)
+		console.log(`vertex : ${glProps.glVertices}`)
 		this._gl.drawArrays(this._gl.TRIANGLES, 0, this._drawCounter);
 
 		return this;
@@ -176,41 +176,50 @@ class WebGLHandler {
 		let indices = object.indices;
 
 		for (let i = 0; i < object.num_indices; i++) {
-      // set vertex
-      let index = indices[i];
-      // set 1st part of triangle
-      glVertices = glVertices.concat(vertices[index[0]]);
-      glVertices = glVertices.concat(vertices[index[1]]);
-      glVertices = glVertices.concat(vertices[index[2]]);
-      // set 2nd part of triangle
-      glVertices = glVertices.concat(vertices[index[0]]);
-      glVertices = glVertices.concat(vertices[index[2]]);
-      glVertices = glVertices.concat(vertices[index[3]]);
+			// set vertex
+			let index = indices[i];
+			// set 1st part of triangle
+			glVertices = glVertices.concat(vertices[index[0]]);
+			glVertices = glVertices.concat(vertices[index[1]]);
+			glVertices = glVertices.concat(vertices[index[2]]);
+			// set 2nd part of triangle
+			glVertices = glVertices.concat(vertices[index[0]]);
+			glVertices = glVertices.concat(vertices[index[2]]);
+			glVertices = glVertices.concat(vertices[index[3]]);
 
-      // set color
-      let colorIdx = i % colors.length;
-      for (let j = 0; j < 6; j++) {
-        glColors = glColors.concat(colors[colorIdx]);
-      }
+			// set color
+			let colorIdx = i % colors.length;
+			for (let j = 0; j < 6; j++) {
+				glColors = glColors.concat(colors[colorIdx]);
+			}
 
-      // set texture coordinates
-      glTexCoords = glTexCoords.concat([
-        0, 0,
-        0, 1,
-        1, 1,
-        1, 0,
-        0, 0,
-        1, 1
-      ]);
+			// set texture coordinates
+			glTexCoords = glTexCoords.concat([
+				0, 0,
+				0, 1,
+				1, 1,
+				1, 0,
+				0, 0,
+				1, 1
+			]);
 
 			this._drawCounter += 6;
-    }
+    	}
 
 		let vectorinfo = this._getVectorInfo(glVertices);
 
 		glNormals = vectorinfo.normals;
 		tangents = vectorinfo.tangents;
 		bitangents = vectorinfo.bitangents;
+
+		glProps.glVertices = glVertices;
+		glProps.glColors = glColors;
+		glProps.glNormals = glNormals;
+		glProps.tangents = tangents;
+		glProps.bitangents = bitangents;
+		glProps.glTexCoords = glTexCoords;
+		
+		// console.log("glVertices : ",  glProps)
 	}
 
 	_setupProperties(state) {
@@ -716,8 +725,8 @@ class WebGLHandler {
 		this._gl.compileShader(shader);
 
 		if (!this._gl.getShaderParameter(shader, this._gl.COMPILE_STATUS)) {
-			console.log("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));
-			gl.deleteShader(shader);
+			console.log("An error occurred compiling the shaders: " + this._gl.getShaderInfoLog(shader));
+			this._gl.deleteShader(shader);
 			return -1;
 		}
 		return shader;

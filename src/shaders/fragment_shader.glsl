@@ -1,3 +1,5 @@
+#version 300 es
+
 precision mediump float;
 
 uniform bool isShading;
@@ -11,13 +13,15 @@ uniform vec3 u_worldCameraPosition;
 // uniform samplerCube u_texture_environment;
 // uniform sampler2D u_texture_bump;
 
-varying vec4 v_color;
-varying vec3 v_modelPosition;
-varying vec3 v_viewModelPosition;
-varying vec3 v_worldNormal;
+in vec4 v_color;
+in vec3 v_modelPosition;
+in vec3 v_viewModelPosition;
+in vec3 v_worldNormal;
 // varying vec2 v_textureCoord;
 
 // varying mat3 v_tbn;
+
+out vec4 outColor;
 
 void main() {
    vec3 worldNormal = normalize(v_worldNormal);
@@ -26,7 +30,7 @@ void main() {
    float directionalLight = dot(worldNormal, u_reverseLightDirection);
    vec3 light = ambientLight + directionalLight;
 
-   gl_FragColor = v_color;
+   outColor = v_color;
 
    // if(textureMode == 0) {
    //    gl_FragColor = texture2D(u_texture_image, v_textureCoord);
@@ -52,7 +56,7 @@ void main() {
    // }
 
    if(isShading) {
-      gl_FragColor.rgb *= light;
+      outColor.rgb *= light;
    }
 
 }
