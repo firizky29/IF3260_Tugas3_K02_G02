@@ -5,18 +5,26 @@ class WebGLHandler {
 		this._gl = this._canvas.getContext('webgl2');
 		this._glComponent = {
 			program : null,
-			vertexBuffer : this._gl.createBuffer(),
-			colorBuffer : this._gl.createBuffer(),
-			normalBuffer : this._gl.createBuffer(),
-			tangentBuffer : this._gl.createBuffer(),
-			bitangentBuffer : this._gl.createBuffer(),
-			textureCoordBuffer : this._gl.createBuffer(),
+			// vertexBuffer : this._gl.createBuffer(),
+			// colorBuffer : this._gl.createBuffer(),
+			// normalBuffer : this._gl.createBuffer(),
+			// tangentBuffer : this._gl.createBuffer(),
+			// bitangentBuffer : this._gl.createBuffer(),
+			// textureCoordBuffer : this._gl.createBuffer(),
 			textures : {
 				image: TextureMap.image(this._gl),
 				environment: TextureMap.environment(this._gl),
 				bump: TextureMap.bump(this._gl)
 			}
 		};
+		this._buffers = [
+			"vertexBuffer",
+			"colorBuffer",
+			"normalBuffer",
+			"tangentBuffer",
+			"bitangentBuffer",
+			"textureCoordBuffer"
+		]
 		this._uniforms = [
 			// // vertex shader uniforms
 			'projectionMatrix',
@@ -48,6 +56,7 @@ class WebGLHandler {
 	async init() {
 		this._glComponent.program = await this._createProgram();
 
+		this._createBuffers();
 		// set shaders uniform and attribute locations
 		this._createUniformLocations();
 		this._createAttributeLocations();
@@ -218,7 +227,7 @@ class WebGLHandler {
 		glProps.tangents = tangents;
 		glProps.bitangents = bitangents;
 		glProps.glTexCoords = glTexCoords;
-		
+
 		// console.log("glVertices : ",  glProps)
 	}
 
@@ -767,6 +776,12 @@ class WebGLHandler {
 			return -1;
 		}
 		return program;
+	}
+
+	_createBuffers() {
+		for (let buffer of this._buffers) {
+			this._glComponent[buffer] = this._gl.createBuffer();
+		}
 	}
 
 	_createUniformLocations() {

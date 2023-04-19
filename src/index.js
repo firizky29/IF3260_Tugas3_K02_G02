@@ -181,19 +181,19 @@ const eventHandler = {
                 var reader = new FileReader();
                 reader.readAsText(file, 'UTF-8');
 
-                reader.onload = (readerEvent) => {
+                reader.onload = async (readerEvent) => {
                     var content = readerEvent.target.result;
                     content = JSON.parse(content);
                     // set all to default
                     state.model = content;
                     state.selectedModel = content;
-                    console.log(content);
+                    // console.log(content);
 
                     webgl.destroy();
-                    webgl = new WebGLHandler(document.querySelector('canvas')).init();
+                    webgl = await new WebGLHandler(document.querySelector('canvas')).init();
 
                     webgl
-                        .clearBuffer()
+                        .clearCanvas()
                         .drawArticulated(state)
 
                     setComponentTree(state.model);
@@ -477,13 +477,13 @@ webgl.drawArticulated(state);
 //   .getElementById('stop_animate')
 //   .addEventListener('click', stopAnimation);
 
-var modal = document.getElementById('modal')
-var btn = document.getElementById('help-btn')
-var span = document.getElementsByClassName('close')[0]
-btn.onclick = function () {
-  modal.style.display = 'block'
-}
-span.onclick = function () {
-  modal.style.display = 'none'
-}
+// var modal = document.getElementById('modal')
+// var btn = document.getElementById('help-btn')
+// var span = document.getElementsByClassName('close')[0]
+// btn.onclick = function () {
+//   modal.style.display = 'block'
+// }
+// span.onclick = function () {
+//   modal.style.display = 'none'
+// }
 
