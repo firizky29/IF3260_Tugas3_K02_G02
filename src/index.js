@@ -73,7 +73,7 @@ let currentModel = {
     part: "Part 1",
     textureType: "NONE",
     translation: [0, 0, 0],
-    rotation: [0, Converter.degToRad(-45), Converter.degToRad(45)],
+    rotation: [0, 0, 0],
     scale: [1, 1, 1],
     child_translate: [0, 0, 0],
     child_rotate: [0, 0, 0],
@@ -86,7 +86,7 @@ let currentModel2 = {
     part: "Part 2",
     textureType: "NONE",
     translation: [0, 0, 0],
-    rotation: [0, Converter.degToRad(-45), Converter.degToRad(45)],
+    rotation: [0, 0, 0],
     scale: [1, 1, 1],
     child_translate: [0, 0, 0],
     child_rotate: [0, 0, 0],
@@ -98,11 +98,17 @@ let currentModel2 = {
 let state = {
     model: currentModel,
     selectedModel: currentModel,
-    projectionType: 'orthographic',
+    projectionType: 'perspective',
     useLighting: true,
     fudgeFactor: 0,
-    obliqueTetha: 0,
-    obliquePhi: 0,
+    obliqueTetha: Converter.degToRad(63.5),
+    obliquePhi: Converter.degToRad(63.5),
+    far: -1,
+    near : 1,
+    top: 1,
+    bottom: -1,
+    left: -1,
+    right: 1,
     cameraRadius: 0,
     cameraRotation: Converter.degToRad(0),
 };
@@ -389,17 +395,17 @@ UIHandler.initSlider('#obj-scaling-z', {
 });
 
 
-// UIHandler.initRadio('#projection', {
-//     initialValue: state.projectionType,
-//     handlerFn: eventHandler.updateProjectionType(),
-// });
+UIHandler.initRadio('#projection', {
+    initialValue: state.projectionType,
+    handlerFn: eventHandler.updateProjectionType(),
+});
 
 // UIHandler.initButton('#load-model', {
 //     handlerFn: eventHandler.loadModel(),
 // });
-UIHandler.initButton('#save-model', {
-    handlerFn: eventHandler.saveModel(),
-});
+// UIHandler.initButton('#save-model', {
+//     handlerFn: eventHandler.saveModel(),
+// });
 
 // generate button tree
 const setComponentTree = (model) => {
@@ -452,22 +458,21 @@ setComponentTree(state.model);
 //   handlerFn: eventHandler.toDefaultButtonHandler(),
 // });
 // console.log(state.model)
-state.model.children.push(currentModel2);
-renderSettings.drawCounter += currentModel2.object.indices.length*6;
+// state.model.children.push(currentModel2);
+// renderSettings.drawCounter += currentModel2.object.indices.length*6;
 
 setComponentTree(state.model);
+
+// console.log(state.model);
+// webgl.drawArticulated(state)
+
 webgl
     .clearBuffer()
     .setModel(state.model)
     .render(renderSettings, state);
-
 // state.model.object = cubeModel2;
 // renderSettings.drawCounter += cubeModel2.indices.length*6;
 // console.log(renderSettings.drawCounter)
-// webgl
-//     .clearBuffer()
-//     .setModel(state.model)
-//     .render(renderSettings, state);
 // const saveToJSON = () => {
 //     let { vertices, colors, normals } = state.model;
 
