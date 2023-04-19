@@ -1,4 +1,5 @@
-import MatrixOp from '../matrix/MatrixOp.js';
+import MatrixOp from './matrix/MatrixOp.js';
+import Matrix4 from './Matrix4.js';
 
 export default class Node {
   constructor(children = [], parent = null) {
@@ -16,12 +17,16 @@ export default class Node {
       }
     }
 
-    parent.children.append(this);
+    parent.children.push(this);
     this.parent = parent;
   }
 
   updateWorldMatrix(parentWorldMatrix) {
-    this.worldMatrix = MatrixOp.multiply(this.localMatrix, parentWorldMatrix);
+    if (parentWorldMatrix) {
+      this.worldMatrix = this.localMatrix.multiply(parentWorldMatrix);
+    } else {
+      this.worldMatrix = this.localMatrix;
+    }
 
     this.children.forEach((child) => {
       child.updateWorldMatrix(this.worldMatrix);
