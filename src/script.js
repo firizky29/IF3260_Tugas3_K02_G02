@@ -1,7 +1,4 @@
-import { getWebGLContext, createProgram } from './utils/webglUtils.js';
-import { Model } from './utils/model/Model.js';
 import { Butterfly } from './models/butterfly.js';
-
 
 
 const helpbtn = document.querySelector('#help');
@@ -14,17 +11,17 @@ let gl = getWebGLContext(canvas);
 
 let articulatedModel = null;
 
-function setModel(model) {
+function setModel(gl, program, model) {
   articulatedModel = new Model(gl, program, model);
 }
 
-const main = () => {
+const main = async () => {
   // initialize program
-  let program = createProgram(gl);
+  let program = await createProgram(gl);
 
   // initialize (default) model
   const defaultModel = Butterfly;
-  setModel(defaultModel);
+  setModel(gl, program, defaultModel);
 
   eventHandler();
   render();
@@ -34,14 +31,13 @@ const render = () => {
   clearCanvas();
 
   // set up matrix
-  let projectionMat = mat4.create();
-  let viewMat = mat4.create();
-  let modelMat = mat4.create();
+  let projectionMat = new Matrix4().identity();
+  let viewMat = new Matrix4().identity();
+  let modelMat = new Matrix4().identity();
   
   // set up camera
-  let cameraPos = vec3.fromValues(0, 0, 5);
-  mat4.lookAt(viewMat, cameraPos, [0, 0, 0], [0, 1, 0]);
-
+  let cameraPos = [0, 0, 5];
+  
   // set up shading
   let isShading = true;
 

@@ -120,7 +120,7 @@ canvas {
 }
 
 #camera-tool p {
-  font-size: medium;
+  font-size: small;
   font-weight: bold;
   margin: 0;
   padding: 0 0 5px 0;
