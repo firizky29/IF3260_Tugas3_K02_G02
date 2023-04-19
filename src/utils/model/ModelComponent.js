@@ -97,11 +97,11 @@ class ModelComponent {
     this.textureCoords = textureCoordinates;
 
     // set up texture
-    // this.textures = {
-    //   image: TextureMap.imageMap(this.gl),
-    //   environment: TextureMap.envMap(this.gl),
-    //   bump: TextureMap.bumpMap(this.gl)
-    // };
+    this.textures = {
+      image: TextureMap.imageMap(this.gl),
+      environment: TextureMap.envMap(this.gl),
+      bump: TextureMap.bumpMap(this.gl)
+    };
   }
 
   bindBuffers() {
@@ -208,7 +208,6 @@ class ModelComponent {
     // );
   }
 
-  // projectionMat, viewMat, modelMat : Matrix4
   setUniform(projectionMat, viewMat, modelMat, cameraPos, isShading) {
     // set uniforms on vertex shader
     this.gl.uniformMatrix4fv(this.programInfo.vertexLoc.u_projectionMat, false, projectionMat.getData());
@@ -225,17 +224,17 @@ class ModelComponent {
 
     // Set texture
     // image
-    // this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_image, 0);
-    // this.gl.activeTexture(this.gl.TEXTURE0);
-    // this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.image);
-    // // environment
-    // this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_env, 1);
-    // this.gl.activeTexture(this.gl.TEXTURE1);
-    // this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.textures.environment);
-    // // bump
-    // this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_bump, 2);
-    // this.gl.activeTexture(this.gl.TEXTURE2);
-    // this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.bump);
+    this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_image, 0);
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.image);
+    // environment
+    this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_env, 1);
+    this.gl.activeTexture(this.gl.TEXTURE1);
+    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.textures.environment);
+    // bump
+    this.gl.uniform1i(this.programInfo.fragmentLoc.u_texture_bump, 2);
+    this.gl.activeTexture(this.gl.TEXTURE2);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.bump);
   }
 
   drawObject(projectionMat, viewMat, modelMat, cameraPos, isShading) {

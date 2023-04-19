@@ -1,98 +1,127 @@
-import CONFIG from '../global/config.js';
 import Converter from '../utils/Converter.js';
 import ViewOp from '../utils//ViewOp.js';
 import Matrix4 from '../utils/Matrix4.js';
-import Render from '../utils/render.js';
 
 export default class WebGLHandler {
 	constructor(canvas) {
 		this._canvas = canvas;
 		this._gl = this._canvas.getContext('webgl2');
-		this._glComponent = {};
-		this._buffers = [
-			'vertexBuffer',
-			'normalBuffer',
-			'colorBuffer',
-			'camPositionBuffer',
-			'camIndicesBuffer',
-		];
-
+		this._glComponent = {
+			program : null,
+			vertexBuffer : this.gl.createBuffer(),
+			colorBuffer : this.gl.createBuffer(),
+			normalBuffer : this.gl.createBuffer(),
+			tangentBuffer : this.gl.createBuffer(),
+			bitangentBuffer : this.gl.createBuffer(),
+			textureCoordBuffer : this.gl.createBuffer(),
+			textures : {
+				image: TextureMap.imageMap(this._gl),
+				environment: TextureMap.envMap(this._gl),
+				bump: TextureMap.bumpMap(this._gl)
+			}
+		};
 		this._uniforms = [
+			// vertex shader uniforms
 			'projectionMatrix',
 			'viewMatrix',
 			'modelMatrix',
 			'normalMatrix',
-			'useLighting',
+			// fragment shader uniforms
+			'isShading',
+			'textureMode',
+			'u_reverseLightDirection',
+			'u_worldCameraPosition',
+			'u_texture_image',
+			'u_texture_environment',
+			'u_texture_bump'
 		];
 
 		this._attributes = [
 			'a_position',
+			'a_color',
 			'a_normal',
-			'a_color'
+			'a_tangent',
+			'a_bitangent',
+			'a_texCoord'
 		]
 
 		this._drawCounter = 0;
 	}
 
 	init() {
-		const shadersConfig = [
-			{
-				type: this._gl.VERTEX_SHADER,
-				source: CONFIG.VERTEX_SHADER,
-			},
-			{
-				type: this._gl.FRAGMENT_SHADER,
-				source: CONFIG.FRAGMENT_SHADER,
-			},
-		];
+		this._glComponent.program = this._createProgram();
 
-		this._glComponent.program = this._createProgram(shadersConfig);
-
-		this._createBuffers();
+		// set shaders uniform and attribute locations
 		this._createUniformLocations();
 		this._createAttributeLocations();
-
-
-		this._gl.enable(this._gl.DEPTH_TEST); // enabled by default, but let's be SURE.
 
 		this._gl.useProgram(this._glComponent.program);
 
 		return this;
 	}
 
-	drawArticulated(state) {
-		// console.log(state.model)
-		this.clearBuffer();
+	clearCanvas() {
+		const resizeCanvasToDisplaySize = (canvas, multiplier) => {
+			multiplier = multiplier || 1;
+			const width = (canvas.clientWidth * multiplier) | 0;
+			const height = (canvas.clientHeight * multiplier) | 0;
+			if (canvas.width !== width || canvas.height !== height) {
+				canvas.width = width;
+				canvas.height = height;
+				return true;
+			}
+			return false;
+		}
+		// resize canvas to match screen size
+		resizeCanvasToDisplaySize(this._gl.canvas);
+		
 		this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
 		this._gl.scissor(0, 0, this._gl.canvas.width, this._gl.canvas.height);
 
-		this._drawCounter = 0;
-		this._bindBuffers();
+		this._gl.clearColor(255, 255, 255, 1); // clear to canvas default color (white)
+		this._gl.clearDepth(1);
+		this._gl.enable(this._gl.DEPTH_TEST);
+		this._gl.depthFunc(this._gl.LEQUAL);
+		this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
-		const props = this._setupProperties(state);
-		this.draw(state.model, props);
+		return this;
 	}
 
-	draw(model, props) {
-		this._updateProperties(model, props);
-		this.drawModel(model, props);
+	drawArticulated(state) {
+		this.clearCanvas();
 
+		this._drawCounter = 0;
+		this._setBuffers();
+		
+		const props = this._setupProperties(state);
+		this.drawModel(state.model, props);
+	}
+
+	drawModel(model, props) {
+		// this._updateProperties(model, props);
+		this.drawComponent(model, props);
+
+		// draw children model
 		for (let i = 0; i < model.children.length; i++) {
-			this.draw(model.children[i], props);
+			this.drawModel(model.children[i], props);
 		}
 
 		return this;
 	}
 
+	drawComponent(model, props) {
+		let glProps = {
+			glVertices: [],
+			glColors: [],
+			glNormals: [],
+			tangents: [],
+			bitangents: [],
+			glTexCoords: [],
+		}
 
+		this._initBuffers(model, glProps);
+		this._bindBuffers(glProps);
 
-	drawModel(model, props) {
-		let glVertices = [];
-		let glColors = [];
-		let glNormals = [];
-
-		this._initBuffers(glVertices, glColors, glNormals, model);
-		this.setModel(glVertices, glColors, glNormals);
 		// clone all attribute on props
 		const newProps = {};
 		for (let key in props) {
@@ -100,10 +129,60 @@ export default class WebGLHandler {
 		}
 
 		this._updateProperties(model, newProps);
-
 		this._gl.drawArrays(this._gl.TRIANGLES, 0, this._drawCounter);
 
 		return this;
+	}
+
+	_initBuffers(model, glProps) {
+		let glVertices = glProps.glVertices;
+		let glColors = glProps.glColors;
+		let glNormals = glProps.glNormals;
+		let tangents = glProps.tangents;
+		let bitangents = glProps.bitangents;
+		let glTexCoords = glProps.glTexCoords;
+
+		let object = model.object;
+		let vertices = object.vertices;
+		let colors = object.colors;
+		let indices = object.indices;
+
+		for (let i = 0; i < object.num_indices; i++) {
+      // set vertex
+      let index = indices[i];
+      // set 1st part of triangle
+      glVertices = glVertices.concat(vertices[index[0]]);
+      glVertices = glVertices.concat(vertices[index[1]]);
+      glVertices = glVertices.concat(vertices[index[2]]);
+      // set 2nd part of triangle
+      glVertices = glVertices.concat(vertices[index[0]]);
+      glVertices = glVertices.concat(vertices[index[2]]);
+      glVertices = glVertices.concat(vertices[index[3]]);
+
+      // set color
+      let colorIdx = i % colors.length;
+      for (let j = 0; j < 6; j++) {
+        glColors = glColors.concat(colors[colorIdx]);
+      }
+
+      // set texture coordinates
+      glTexCoords = glTexCoords.concat([
+        0, 0,
+        0, 1,
+        1, 1,
+        1, 0,
+        0, 0,
+        1, 1
+      ]);
+
+			this._drawCounter += 6;
+    }
+
+		let vectorinfo = getVectorInfo(glVertices);
+
+		glNormals = vectorinfo.normals;
+		tangents = vectorinfo.tangents;
+		bitangents = vectorinfo.bitangents;
 	}
 
 	_setupProperties(state) {
@@ -121,11 +200,8 @@ export default class WebGLHandler {
 
 		let modelMatrix = new Matrix4().identity()
 
-
 		modelMatrix.transform(model.translation, model.rotation, model.scale);
 		let projectionMatrix = this.getProjectionMatrix(projectionType, state)
-
-
 
 		let cameraMatrix = new Matrix4().identity()
 			.rotateY(cameraRotation)
@@ -138,8 +214,6 @@ export default class WebGLHandler {
 		];
 		const target = [0, 0, 0];
 		const up = [0, 1, 0];
-
-
 
 		cameraMatrix = ViewOp.lookAt(cameraPos, target, up);
 		const viewMatrix = cameraMatrix.clone().inverse()
@@ -164,12 +238,7 @@ export default class WebGLHandler {
 	}
 
 	_updateProperties(model, props) {
-		props.modelMatrix.identity().transform(
-			model.translation,
-			model.rotation,
-			model.scale
-		)
-
+		props.modelMatrix.identity().transform(model.translation, model.rotation, model.scale)
 		props.normalMatrix = props.modelMatrix.clone().multiply(props.viewMatrix).inverse().transpose();
 		this._setUniforms(props);
 	}
@@ -200,69 +269,96 @@ export default class WebGLHandler {
 		}
 	}
 
+	_setUniform(props) {
+		const {projectionMat, viewMat, modelMat, normalMat, cameraPos, isShading} = props;
+		// set uniforms on vertex shader
+		this.gl.uniformMatrix4fv(this._glComponent.projectionMatrix, false, projectionMat.flatten());
+		this.gl.uniformMatrix4fv(this._glComponent.viewMatrix, false, viewMat.flatten());
+		this.gl.uniformMatrix4fv(this._glComponent.modelMatrix, false, modelMat.flatten());
+		this.gl.uniformMatrix4fv(this._glComponent.normalMatrix, false, normalMat.flatten());
+		
+		// set uniforms on fragment shader
+		this.gl.uniform1i(this._glComponent.isShading, Number(isShading));
+		// this.gl.uniform1i(this._glComponent.textureMode, Number(this.textureMode));
+		this.gl.uniform3fv(this._glComponent.u_reverseLightDirection, GeometryOp.normalize([0.0, 0.0, 1.0]));
+		this.gl.uniform3fv(this._glComponent.u_worldCameraPosition, cameraPos);
 
-
-
-	_setUniforms(uniforms) {
-		const {
-			projectionMatrix,
-			viewMatrix,
-			modelMatrix,
-			normalMatrix,
-			useLighting
-		} = uniforms;
-
-		this._gl.uniformMatrix4fv(
-			this._glComponent.projectionMatrix,
-			false,
-			projectionMatrix.flatten()
-		);
-
-		this._gl.uniformMatrix4fv(
-			this._glComponent.viewMatrix,
-			false,
-			viewMatrix.flatten()
-		);
-
-		this._gl.uniformMatrix4fv(
-			this._glComponent.modelMatrix,
-			false,
-			modelMatrix.flatten()
-		);
-
-		this._gl.uniformMatrix4fv(
-			this._glComponent.normalMatrix,
-			false,
-			normalMatrix.flatten()
-		);
-
-		// this._gl.uniform1i(
-		// 	this._glComponent.useLighting,
-		// 	useLighting
-		// );
+		// Set texture
+		// image
+		this.gl.uniform1i(this._glComponent.u_texture_image, 0);
+		this.gl.activeTexture(this.gl.TEXTURE0);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.image);
+		// environment
+		this.gl.uniform1i(this._glComponent.u_texture_env, 1);
+		this.gl.activeTexture(this.gl.TEXTURE1);
+		this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.textures.environment);
+		// bump
+		this.gl.uniform1i(this._glComponent.u_texture_bump, 2);
+		this.gl.activeTexture(this.gl.TEXTURE2);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.bump);
 
 		return this;
-
 	}
 
-	_bindBuffers() {
-		this._gl.enableVertexAttribArray(this._glComponent.positionAttributeLocation);
-		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.vertexBuffer);
+	_bindBuffers(glProps) {
+		const vertices = glProps.glVertices;
+		const colors = glProps.glColors;
+		const normals = glProps.glNormals;
+		const tangents = glProps.tangents;
+		const bitangents = glProps.bitangents;
+		const textureCoords = glProps.glTexCoords;
 
-		this._gl.vertexAttribPointer(
-			this._glComponent.positionAttributeLocation,
-			3,
-			this._gl.FLOAT,
-			false,
-			0,
-			0
-		);
+    // bind Position buffer
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.vertexBuffer);
+    this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.STATIC_DRAW);
+		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
 
-		this._gl.enableVertexAttribArray(this._glComponent.colorAttributeLocation);
+    // bind Color buffer
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.colorBuffer);
+    this._gl.bufferData(this._gl.ARRAY_BUFFER, new Uint8Array(colors), this._gl.STATIC_DRAW);
+		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+
+    // bind Normal buffer
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.normalBuffer);
+    this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(normals), this._gl.STATIC_DRAW);
+		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+
+    // // bind Tangent buffer
+    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.tangentBuffer);
+    // this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(tangents), this._gl.STATIC_DRAW);
+		// this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+
+    // // bind Bitangent buffer
+    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.bitangentBuffer);
+    // this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(bitangents), this._gl.STATIC_DRAW);
+		// this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+
+    // // bind TextureCoord buffer
+    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.textureCoordBuffer);
+    // this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(textureCoords), this._gl.STATIC_DRAW);
+		// this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+		
+		return this;
+  }
+
+	_setBuffers() {
+    // set Position buffer
+    this._gl.enableVertexAttribArray(this._glComponent.positionAttribLoc);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.vertexBuffer);
+    this._gl.vertexAttribPointer(
+      this._glComponent.positionAttribLoc,    	// location
+      3,                                        // size
+      this._gl.FLOAT,                           // type
+      false,                                    // normalized
+      0,                                        // stride
+      0                                         // offset
+    );
+
+    // set Color buffer
+    this._gl.enableVertexAttribArray(this._glComponent.colorAttribLoc);
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.colorBuffer);
-
 		this._gl.vertexAttribPointer(
-			this._glComponent.colorAttributeLocation,
+			this._glComponent.colorAttribLoc,
 			4,
 			this._gl.UNSIGNED_BYTE,
 			true,
@@ -270,11 +366,11 @@ export default class WebGLHandler {
 			0
 		);
 
-		this._gl.enableVertexAttribArray(this._glComponent.normalAttributeLocation);
+    // set Normal buffer
+    this._gl.enableVertexAttribArray(this._glComponent.normalAttribLoc);
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.normalBuffer);
-
 		this._gl.vertexAttribPointer(
-			this._glComponent.normalAttributeLocation,
+			this._glComponent.normalAttribLoc,
 			3,
 			this._gl.FLOAT,
 			false,
@@ -282,83 +378,49 @@ export default class WebGLHandler {
 			0
 		);
 
-		return this;
-	}
+    // // set Tangent buffer
+    // this._gl.enableVertexAttribArray(this._glComponent.tangentAttribLoc);
+    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.tangentBuffer);
+    // this._gl.vertexAttribPointer(
+    //   this._glComponent.tangentAttribLoc,
+    //   3,
+    //   this._gl.FLOAT,
+    //   false,
+    //   0,
+    //   0
+    // );
 
+    // // set Bitangent buffer
+    // this._gl.enableVertexAttribArray(this._glComponent.bitangentAttribLoc);
+    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.bitangentBuffer);
+    // this._gl.vertexAttribPointer(
+    //   this._glComponent.bitangentAttribLoc,
+    //   3,
+    //   this._gl.FLOAT,
+    //   false,
+    //   0,
+    //   0
+    // );
 
-	_initBuffers(glVertices, glColors, glNormals, model) {
-		let object = model.object;
-		let vertices = object.vertices;
-		let colors = object.colors;
-		let indices = object.indices;
-
-		for (let i = 0; i < object.num_indices; i++) {
-			let vertex_idx = indices[i];
-
-			let corners = [];
-			corners.push(vertices[vertex_idx[0]])
-			corners.push(vertices[vertex_idx[1]])
-			corners.push(vertices[vertex_idx[2]])
-			corners.push(vertices[vertex_idx[3]])
-			let color_idx = i % colors.length;
-
-			Render.rectangle(glVertices, glColors, glNormals, corners, colors[color_idx])
-			this._drawCounter += 6;
-		}
-	}
-
-
-	setVertices(vertices) {
-		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.vertexBuffer);
-		this._gl.bufferData(
-			this._gl.ARRAY_BUFFER,
-			new Float32Array(vertices),
-			this._gl.STATIC_DRAW
-		);
-
-		return this;
-	}
-
-	setColors(colors) {
-		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.colorBuffer);
-		this._gl.bufferData(
-			this._gl.ARRAY_BUFFER,
-			new Uint8Array(colors),
-			this._gl.STATIC_DRAW
-		);
+    // // set TextureCoord buffer
+    // this._gl.enableVertexAttribArray(this._glComponent.textureCoordAttribLoc);
+    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.textureCoordBuffer);
+    // this._gl.vertexAttribPointer(
+    //   this._glComponent.textureCoordAttribLoc,
+    //   2,
+    //   this._gl.FLOAT,
+    //   false,
+    //   0,
+    //   0
+    // );
 
 		return this;
-	}
-
-	setNormals(normals) {
-		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.normalBuffer);
-		this._gl.bufferData(
-			this._gl.ARRAY_BUFFER,
-			new Float32Array(normals),
-			this._gl.STATIC_DRAW
-		);
-
-		return this;
-	}
+  }
 
 	getGl() {
 		return this._gl;
 	}
 
-	clearBuffer() {
-
-		this._gl.clearColor(0, 0, 0, 1.0);
-		this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
-		return this;
-	}
-
-	setModel(glVertices, glColors, glNormals) {
-		this.setVertices(glVertices);
-		this.setColors(glColors);
-		this.setNormals(glNormals);
-
-		return this;
-	}
 
 	// _setPrimitives(glVertices, glColors, glNormals, model) {
 	// 	let object = model.object;
@@ -391,8 +453,6 @@ export default class WebGLHandler {
 	// 		this._setPrimitives(glVertices, glColors, glNormals, model.children[i]);
 	// 	}
 	// }
-
-
 
 	render(settings, state) {
 		// const positionAttributeLocation = this._gl.getAttribLocation(
@@ -513,7 +573,7 @@ export default class WebGLHandler {
 		// 	stride,
 		// 	offset
 		// );
-		this._bindBuffers();
+		this._setBuffers();
 		this.setupProperties(state);
 		// let matrix = new Matrix4().identity()
 
@@ -611,7 +671,7 @@ export default class WebGLHandler {
 
 	renderAnimation(settings, state) {
 		window.requestAnimationFrame(() => {
-			this.clearBuffer().render(settings, state);
+			this.clearCanvas().render(settings, state);
 			if (state.animation == true) {
 				state.animation_rotation[0] += 0.01;
 				state.animation_rotation[1] += 0.02;
@@ -627,58 +687,49 @@ export default class WebGLHandler {
 		this._gl.shaderSource(shader, source);
 		this._gl.compileShader(shader);
 
-		const isSuccess = this._gl.getShaderParameter(
-			shader,
-			this._gl.COMPILE_STATUS
-		);
-
-		if (!isSuccess) {
-			console.error(this._gl.getShaderInfoLog(shader));
-			this._gl.deleteShader(shader);
+		if (!this._gl.getShaderParameter(shader, this._gl.COMPILE_STATUS)) {
+			console.log("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));
+			gl.deleteShader(shader);
+			return -1;
 		}
-
 		return shader;
 	}
 
-	_createProgram(shadersConfig) {
+	async _createProgram() {
+		// set up vertex shader
+		const vertexShaderPath = "vertex_shader.glsl";
+		const vertexShaderScript = await fetchShader(vertexShaderPath);
+		var vertexShader = this._createShader(this._gl, this._gl.VERTEX_SHADER, vertexShaderScript);
+	
+		// set up fragment shader
+		const fragmentShaderPath = "fragment_shader.glsl";
+		const fragmentShaderScript = await fetchShader(fragmentShaderPath);
+		var fragmentShader = this._createShader(this._gl, this._gl.FRAGMENT_SHADER, fragmentShaderScript);
+	
+		// create program
 		const program = this._gl.createProgram();
-		for (let shaderConfig of shadersConfig) {
-			const shader = this._createShader(shaderConfig.type, shaderConfig.source);
-			this._gl.attachShader(program, shader);
-		}
+	
+		// attach shader to program
+		this._gl.attachShader(program, vertexShader);
+		this._gl.attachShader(program, fragmentShader);
 		this._gl.linkProgram(program);
-
-		const isSuccess = this._gl.getProgramParameter(
-			program,
-			this._gl.LINK_STATUS
-		);
-
-		if (!isSuccess) {
-			console.log(this._gl.getProgramInfoLog(program));
-			this._gl.deleteProgram(program);
+	
+		if (!this._gl.getProgramParameter(program, this._gl.LINK_STATUS)) {
+			alert("Shader program failed to link.\nError log :" + this._gl.getProgramInfoLog(program));
+			return -1;
 		}
-
 		return program;
-	}
-
-	_createBuffers() {
-		for (let buffer of this._buffers) {
-			this._glComponent[buffer] = this._gl.createBuffer();
-		}
 	}
 
 	_createUniformLocations() {
 		for (let uniform of this._uniforms) {
-			this._glComponent[uniform] = this._gl.getUniformLocation(
-				this._glComponent.program,
-				uniform
-			);
+			this._glComponent[uniform] = this._gl.getUniformLocation(this._glComponent.program, uniform);
 		}
 	}
 
 	_createAttributeLocations() {
 		for (let attribute of this._attributes) {
-			const attributeName = attribute.replace('a_', '') + 'AttributeLocation';
+			const attributeName = attribute.replace('a_', '') + 'AttribLoc';
 			// console.log(attributeName, attribute)
 			this._glComponent[attributeName] = this._gl.getAttribLocation(
 				this._glComponent.program,
@@ -686,7 +737,6 @@ export default class WebGLHandler {
 			);
 		}
 	}
-
 
 	destroy() {
 		for (let buffer of this._buffers) {

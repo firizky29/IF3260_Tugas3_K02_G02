@@ -7,10 +7,10 @@ attribute vec3 a_normal;
 // attribute vec3 a_bitangent;
 // attribute vec2 a_texCoord;
 
-uniform mat4 u_projectionMat;
-uniform mat4 u_viewMat;
-uniform mat4 u_modelMat;
-uniform mat4 u_normalMat;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
+uniform mat4 normalMatrix;
 
 varying vec4 v_color;
 varying vec3 v_modelPosition;
@@ -36,19 +36,19 @@ mat3 transpose(in mat3 inMatrix)
 }
 
 void main() {
-  mat4 vm = u_viewMat * u_modelMat;
+  mat4 vm = viewMatrix * modelMatrix;
 
-  gl_Position = u_projectionMat * vm * a_position;
+  gl_Position = projectionMatrix * vm * a_position;
 
   v_color = a_color;
-  v_modelPosition = vec3(u_modelMat * a_position);
+  v_modelPosition = vec3(modelMatrix * a_position);
   v_viewModelPosition = vec3(vm * a_position);
-  v_worldNormal = mat3(u_modelMat) * a_normal;
+  v_worldNormal = mat3(modelMatrix) * a_normal;
   // v_textureCoord = a_texCoord;
 
   // Bump mapping variables
-  // vec3 t = normalize(mat3(u_normalMat) * a_tangent);
-  // vec3 b = normalize(mat3(u_normalMat) * a_bitangent);
-  // vec3 n = normalize(mat3(u_normalMat) * a_normal);
+  // vec3 t = normalize(mat3(normalMatrix) * a_tangent);
+  // vec3 b = normalize(mat3(normalMatrix) * a_bitangent);
+  // vec3 n = normalize(mat3(normalMatrix) * a_normal);
   // v_tbn = transpose(mat3(t, b, n));
 }

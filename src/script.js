@@ -64,7 +64,7 @@ function clearCanvas() {
   resizeCanvasToDisplaySize(gl.canvas);
   gl.viewport(0, 0, canvas.width, canvas.height);
 
-  gl.clearColor(0, 0, 0, 1); // clear to canvas default color (#3b3b3b)
+  gl.clearColor(255, 255, 255, 1); // clear to canvas default color (#3b3b3b)
   gl.clearDepth(1);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
