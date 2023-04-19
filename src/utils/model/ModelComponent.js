@@ -1,3 +1,4 @@
+import { WebGLProgramInfo } from '../WebGLProgramInfo.js';
 
 class ModelComponent {
   constructor(gl, program, objectModel) {

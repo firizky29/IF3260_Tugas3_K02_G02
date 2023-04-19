@@ -1,7 +1,7 @@
 import GeometryOp from "./GeometryOp.js"
 
 const Render = {
-    rectangle(vertices, colors, normals, corners, rectColor){
+    rectangle(vertices, colors, normals, corners, rectColor) {
         // corners are defined counter clock-wise
         // find normal of the rectangle
         const normal = GeometryOp.triangleNormal(corners[0], corners[1], corners[2])
@@ -16,4 +16,5 @@ const Render = {
     }
 }
 
-export default Render
+
+export default Render;
