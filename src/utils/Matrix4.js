@@ -249,3 +249,5 @@ class Matrix4 {
             .scale(scale[0], scale[1], scale[2]);
     }
 }
+
+export default Matrix4;

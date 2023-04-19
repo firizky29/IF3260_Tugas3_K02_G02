@@ -80,3 +80,5 @@ const GeometryOp = {
         return this.normalize(this.cross(a, b))
     }
 }
+
+export default GeometryOp
