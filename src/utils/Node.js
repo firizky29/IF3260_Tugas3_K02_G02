@@ -1,7 +1,4 @@
-import MatrixOp from './matrix/MatrixOp.js';
-import Matrix4 from './Matrix4.js';
-
-export default class Node {
+class Node {
   constructor(children = [], parent = null) {
     this.children = children;
     this.parent = parent;
