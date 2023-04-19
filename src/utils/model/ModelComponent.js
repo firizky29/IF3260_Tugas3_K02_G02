@@ -224,3 +224,5 @@ class ModelComponent {
     this.gl.drawArrays(this.gl.TRIANGLES, 0, this.totalVertices);
   }
 }
+
+export default ModelComponent;
