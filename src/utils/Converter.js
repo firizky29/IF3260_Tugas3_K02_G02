@@ -7,5 +7,3 @@ const Converter = {
         return (deg / 180) * Math.PI;
     },
 };
-
-export default Converter;

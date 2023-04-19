@@ -1,7 +1,8 @@
+
 function isPowerOf2(value) {
   return (value & (value - 1)) === 0;
 }
-export class TextureMap {
+class TextureMap {
 
   static environment(gl){
     // Create the texture.
@@ -13,27 +14,27 @@ export class TextureMap {
     const faceInfos = [
       {
         target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-        url: '../assets/pos-x.jpg',
+        url: './assets/pos-x.jpg',
       },
       {
         target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-        url: '../assets/neg-x.jpg',
+        url: './assets/neg-x.jpg',
       },
       {
         target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-        url: '../assets/pos-y.jpg',
+        url: './assets/pos-y.jpg',
       },
       {
         target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-        url: '../assets/neg-y.jpg',
+        url: './assets/neg-y.jpg',
       },
       {
         target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-        url: '../assets/pos-z.jpg',
+        url: './assets/pos-z.jpg',
       },
       {
         target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-        url: '../assets/neg-z.jpg',
+        url: './assets/neg-z.jpg',
       },
     ];
     faceInfos.forEach((faceInfo) => {
@@ -74,7 +75,7 @@ export class TextureMap {
    * @returns - The texture.
    */
   static image(gl) {
-    const url = "../assets/sun.jpg";
+    const url = "./assets/sun.jpg";
     
     return TextureMap.loadTexture2D(gl, url);
   }
@@ -86,7 +87,7 @@ export class TextureMap {
    * @returns - The texture.
    */
   static bump(gl){
-    const url = "../assets/bump.png";
+    const url = "./assets/bump.png";
     return TextureMap.loadTexture2D(gl, url);
   }
 

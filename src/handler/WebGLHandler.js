@@ -1,55 +1,52 @@
-import Converter from '../utils/Converter.js';
-import ViewOp from '../utils//ViewOp.js';
-import Matrix4 from '../utils/Matrix4.js';
+class WebGLHandler {
 
-export default class WebGLHandler {
 	constructor(canvas) {
 		this._canvas = canvas;
 		this._gl = this._canvas.getContext('webgl2');
 		this._glComponent = {
 			program : null,
-			vertexBuffer : this.gl.createBuffer(),
-			colorBuffer : this.gl.createBuffer(),
-			normalBuffer : this.gl.createBuffer(),
-			tangentBuffer : this.gl.createBuffer(),
-			bitangentBuffer : this.gl.createBuffer(),
-			textureCoordBuffer : this.gl.createBuffer(),
+			vertexBuffer : this._gl.createBuffer(),
+			colorBuffer : this._gl.createBuffer(),
+			normalBuffer : this._gl.createBuffer(),
+			tangentBuffer : this._gl.createBuffer(),
+			bitangentBuffer : this._gl.createBuffer(),
+			textureCoordBuffer : this._gl.createBuffer(),
 			textures : {
-				image: TextureMap.imageMap(this._gl),
-				environment: TextureMap.envMap(this._gl),
-				bump: TextureMap.bumpMap(this._gl)
+				image: TextureMap.image(this._gl),
+				environment: TextureMap.environment(this._gl),
+				bump: TextureMap.bump(this._gl)
 			}
 		};
 		this._uniforms = [
-			// vertex shader uniforms
+			// // vertex shader uniforms
 			'projectionMatrix',
 			'viewMatrix',
 			'modelMatrix',
 			'normalMatrix',
-			// fragment shader uniforms
+			// // fragment shader uniforms
 			'isShading',
-			'textureMode',
+			// 'textureMode',
 			'u_reverseLightDirection',
 			'u_worldCameraPosition',
-			'u_texture_image',
-			'u_texture_environment',
-			'u_texture_bump'
+			// 'u_texture_image',
+			// 'u_texture_environment',
+			// 'u_texture_bump'
 		];
 
 		this._attributes = [
 			'a_position',
 			'a_color',
 			'a_normal',
-			'a_tangent',
-			'a_bitangent',
-			'a_texCoord'
+			// 'a_tangent',
+			// 'a_bitangent',
+			// 'a_texCoord'
 		]
 
 		this._drawCounter = 0;
 	}
 
-	init() {
-		this._glComponent.program = this._createProgram();
+	async init() {
+		this._glComponent.program = await this._createProgram();
 
 		// set shaders uniform and attribute locations
 		this._createUniformLocations();
@@ -129,10 +126,41 @@ export default class WebGLHandler {
 		}
 
 		this._updateProperties(model, newProps);
+		console.log(`counter : ${this._drawCounter}`)
 		this._gl.drawArrays(this._gl.TRIANGLES, 0, this._drawCounter);
 
 		return this;
 	}
+
+	_getVectorInfo(glVertices) {
+    let normals = [];
+    let tangents = [];
+    let bitangents = [];
+
+    for(let i = 0; i < glVertices.length; i += 18){
+        const u = glVertices.slice(i, i + 3);
+        const v = glVertices.slice(i + 3, i + 6);
+        const w = glVertices.slice(i + 6, i + 9);
+
+        const uv = GeometryOp.subtract(v, u);
+        const uw = GeometryOp.subtract(w, u);
+
+        const n = GeometryOp.normalize(GeometryOp.cross(uv, uw));
+        const t = GeometryOp.normalize(uv);
+        const b = GeometryOp.normalize(uw);
+
+        for(let j = 0; j < 6; j++){
+            normals = normals.concat(n);
+            tangents = tangents.concat(t);
+            bitangents = bitangents.concat(b);
+        }
+    }
+    return {
+        normals: normals,
+        tangents: tangents,
+        bitangents: bitangents
+    }
+}
 
 	_initBuffers(model, glProps) {
 		let glVertices = glProps.glVertices;
@@ -178,7 +206,7 @@ export default class WebGLHandler {
 			this._drawCounter += 6;
     }
 
-		let vectorinfo = getVectorInfo(glVertices);
+		let vectorinfo = this._getVectorInfo(glVertices);
 
 		glNormals = vectorinfo.normals;
 		tangents = vectorinfo.tangents;
@@ -229,7 +257,7 @@ export default class WebGLHandler {
 			viewMatrix,
 			modelMatrix,
 			normalMatrix,
-			// useLighting
+			// cameraPos,
 		}
 
 		this._setUniforms(uniforms);
@@ -269,33 +297,33 @@ export default class WebGLHandler {
 		}
 	}
 
-	_setUniform(props) {
-		const {projectionMat, viewMat, modelMat, normalMat, cameraPos, isShading} = props;
+	_setUniforms(props) {
+		const {projectionMatrix, viewMatrix, modelMatrix, normalMatrix, cameraPos, isShading} = props;
 		// set uniforms on vertex shader
-		this.gl.uniformMatrix4fv(this._glComponent.projectionMatrix, false, projectionMat.flatten());
-		this.gl.uniformMatrix4fv(this._glComponent.viewMatrix, false, viewMat.flatten());
-		this.gl.uniformMatrix4fv(this._glComponent.modelMatrix, false, modelMat.flatten());
-		this.gl.uniformMatrix4fv(this._glComponent.normalMatrix, false, normalMat.flatten());
+		this._gl.uniformMatrix4fv(this._glComponent.projectionMatrix, false, projectionMatrix.flatten());
+		this._gl.uniformMatrix4fv(this._glComponent.viewMatrix, false, viewMatrix.flatten());
+		this._gl.uniformMatrix4fv(this._glComponent.modelMatrix, false, modelMatrix.flatten());
+		this._gl.uniformMatrix4fv(this._glComponent.normalMatrix, false, normalMatrix.flatten());
 		
 		// set uniforms on fragment shader
-		this.gl.uniform1i(this._glComponent.isShading, Number(isShading));
-		// this.gl.uniform1i(this._glComponent.textureMode, Number(this.textureMode));
-		this.gl.uniform3fv(this._glComponent.u_reverseLightDirection, GeometryOp.normalize([0.0, 0.0, 1.0]));
-		this.gl.uniform3fv(this._glComponent.u_worldCameraPosition, cameraPos);
+		this._gl.uniform1i(this._glComponent.isShading, Number(isShading));
+		// this._gl.uniform1i(this._glComponent.textureMode, Number(this.textureMode));
+		this._gl.uniform3fv(this._glComponent.u_reverseLightDirection, GeometryOp.normalize([0.0, 0.0, 1.0]));
+		// this._gl.uniform3fv(this._glComponent.u_worldCameraPosition, cameraPos);
 
 		// Set texture
 		// image
-		this.gl.uniform1i(this._glComponent.u_texture_image, 0);
-		this.gl.activeTexture(this.gl.TEXTURE0);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.image);
-		// environment
-		this.gl.uniform1i(this._glComponent.u_texture_env, 1);
-		this.gl.activeTexture(this.gl.TEXTURE1);
-		this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.textures.environment);
-		// bump
-		this.gl.uniform1i(this._glComponent.u_texture_bump, 2);
-		this.gl.activeTexture(this.gl.TEXTURE2);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.bump);
+		// this._gl.uniform1i(this._glComponent.u_texture_image, 0);
+		// this._gl.activeTexture(this._gl.TEXTURE0);
+		// this._gl.bindTexture(this._gl.TEXTURE_2D, this.textures.image);
+		// // environment
+		// this._gl.uniform1i(this._glComponent.u_texture_env, 1);
+		// this._gl.activeTexture(this._gl.TEXTURE1);
+		// this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this.textures.environment);
+		// // bump
+		// this._gl.uniform1i(this._glComponent.u_texture_bump, 2);
+		// this._gl.activeTexture(this._gl.TEXTURE2);
+		// this._gl.bindTexture(this._gl.TEXTURE_2D, this.textures.bump);
 
 		return this;
 	}
@@ -695,16 +723,27 @@ export default class WebGLHandler {
 		return shader;
 	}
 
+	async _fetchShader(filename) {
+		try {
+			const res = await fetch(`./shaders/${filename}`);
+			const shader = await res.text();
+			return shader;
+	
+		} catch (e) {
+			console.log(`Failed to fetch shader at ${url}: ${e}`);
+		}
+	}
+
 	async _createProgram() {
 		// set up vertex shader
 		const vertexShaderPath = "vertex_shader.glsl";
-		const vertexShaderScript = await fetchShader(vertexShaderPath);
-		var vertexShader = this._createShader(this._gl, this._gl.VERTEX_SHADER, vertexShaderScript);
+		const vertexShaderScript = await this._fetchShader(vertexShaderPath);
+		var vertexShader = this._createShader(this._gl.VERTEX_SHADER, vertexShaderScript);
 	
 		// set up fragment shader
 		const fragmentShaderPath = "fragment_shader.glsl";
-		const fragmentShaderScript = await fetchShader(fragmentShaderPath);
-		var fragmentShader = this._createShader(this._gl, this._gl.FRAGMENT_SHADER, fragmentShaderScript);
+		const fragmentShaderScript = await this._fetchShader(fragmentShaderPath);
+		var fragmentShader = this._createShader(this._gl.FRAGMENT_SHADER, fragmentShaderScript);
 	
 		// create program
 		const program = this._gl.createProgram();

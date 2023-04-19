@@ -42,5 +42,3 @@ const UIHandler = {
 		});
 	},
 };
-
-export default UIHandler;
