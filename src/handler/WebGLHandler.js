@@ -100,23 +100,36 @@ class WebGLHandler {
     this._setBuffers();
 
     const props = this._setupProperties(state);
-    this._nodesDetails = this._createTreeComponent(state.model);
-    this._nodesDetails.parentNode.updateWorldMatrix();
-    this.drawObjectNodes(props);
+    // this._nodesDetails = this._createTreeComponent(state.model);
+    // this._nodesDetails.parentNode.updateWorldMatrix();
+    this.drawModel(state.model, props);
   }
 
-  drawObjectNodes(props) {
-    // this._updateProperties(model, props);
+  drawModel(model, props) {
+    props.modelMatrix = props.modelMatrix
+      .clone()
+      .transform(
+        model.subtree_translate,
+        model.subtree_rotate,
+        model.subtree_scale
+      );
+
+    props.normalMatrix = props.modelMatrix
+      .clone()
+      .multiply(props.viewMatrix)
+      .inverse()
+      .transpose();
+    this.drawComponent(model, props);
 
     // draw children model
-    for (let i = 0; i < this._nodesDetails.objectNodes.length; i++) {
-      this.drawComponent(props, this._nodesDetails.objectNodes[i]);
+    for (let i = 0; i < model.children.length; i++) {
+      this.drawModel(model.children[i], props);
     }
 
     return this;
   }
 
-  drawComponent(props, objectNode) {
+  drawComponent(model, props) {
     let glProps = {
       glVertices: [],
       glColors: [],
@@ -126,7 +139,7 @@ class WebGLHandler {
       glTexCoords: [],
     };
 
-    this._initBuffers(objectNode.model, glProps);
+    this._initBuffers(model, glProps);
     this._bindBuffers(glProps);
 
     // clone all attribute on props
@@ -140,8 +153,8 @@ class WebGLHandler {
       }
     }
 
-    this._updateProperties(newProps, objectNode);
-    console.log('props', newProps);
+    this._updateProperties(model, newProps);
+    // console.log('props', newProps);
     this._gl.drawArrays(this._gl.TRIANGLES, 0, this._drawCounter);
 
     return this;
@@ -245,7 +258,11 @@ class WebGLHandler {
 
     let modelMatrix = new Matrix4().identity();
 
-    modelMatrix.transform(model.translation, model.rotation, model.scale);
+    modelMatrix.transform(
+      model.subtree_translate,
+      model.subtree_rotate,
+      model.subtree_scale
+    );
     let projectionMatrix = this.getProjectionMatrix(projectionType, state);
 
     let cameraMatrix = new Matrix4()
@@ -281,15 +298,9 @@ class WebGLHandler {
     return uniforms;
   }
 
-  _updateProperties(props, objectNode) {
-    props.modelMatrix
-      .identity()
-      .transform(
-        objectNode.model.translation,
-        objectNode.model.rotation,
-        objectNode.model.scale
-      )
-      .multiply(objectNode.worldMatrix);
+  _updateProperties(model, props) {
+    // console.log(this._nodesDetails.parentNode);
+    props.modelMatrix.transform(model.translation, model.rotation, model.scale);
 
     props.normalMatrix = props.modelMatrix
       .clone()
@@ -868,52 +879,51 @@ class WebGLHandler {
     this._gl.deleteProgram(this._glComponent.program);
   }
 
-  _createTreeComponent(model) {
-    const vm = this;
-    const parentNode = this._createJointNode(model);
-    const objectNodes = [];
-    const objectParentNode = this._createPartNode(model);
-    objectParentNode.setParent(parentNode);
+  // _createTreeComponent(model) {
+  //   const vm = this;
+  //   const rootNode = this._createJointNode(model);
+  //   const objectNodes = [];
+  //   const objectRootNode = this._createPartNode(model);
+  //   objectRootNode.setParent(rootNode);
 
-    objectNodes.push(objectParentNode);
+  //   objectNodes.push(objectRootNode);
 
-    function _createSubtreeComponent(parentNode, modelComponent) {
-      for (let i = 0; i < modelComponent.children.length; i++) {
-        let childNode = vm._createJointNode(modelComponent.children[i]);
-        let objectChildNode = vm._createPartNode(modelComponent.children[i]);
-        objectChildNode.setParent(childNode);
-        childNode.setParent(parentNode);
-        objectNodes.push(objectChildNode);
-        _createSubtreeComponent(childNode, modelComponent.children[i]);
-      }
-    }
+  //   function _createSubtreeComponent(parentNode, modelComponent) {
+  //     for (let i = 0; i < modelComponent.children.length; i++) {
+  //       let childNode = vm._createJointNode(modelComponent.children[i]);
+  //       let objectChildNode = vm._createPartNode(modelComponent.children[i]);
+  //       objectChildNode.setParent(childNode);
+  //       childNode.setParent(parentNode);
+  //       objectNodes.push(objectChildNode);
+  //       _createSubtreeComponent(childNode, modelComponent.children[i]);
+  //     }
+  //   }
 
-    for (let i = 0; i < model.children.length; i++) {
-      _createSubtreeComponent(parentNode, model);
-    }
-    return { parentNode, objectNodes };
-  }
+  //   console.log(rootNode);
+  //   _createSubtreeComponent(rootNode, model);
+  //   return { parentNode: rootNode, objectNodes };
+  // }
 
-  _createJointNode(modelPart) {
-    const newNode = new Node();
-    newNode.localMatrix = new Matrix4()
-      .identity()
-      .translate(...modelPart.subtree_translate)
-      .rotate(...modelPart.subtree_rotate)
-      .scale(...modelPart.subtree_scale);
+  // _createJointNode(modelPart) {
+  //   const newNode = new Node();
+  //   newNode.localMatrix = new Matrix4()
+  //     .identity()
+  //     .translate(...modelPart.subtree_translate)
+  //     .rotate(...modelPart.subtree_rotate)
+  //     .scale(...modelPart.subtree_scale);
 
-    return newNode;
-  }
+  //   return newNode;
+  // }
 
-  _createPartNode(modelPart) {
-    const newNode = new Node();
-    newNode.model = modelPart;
-    newNode.localMatrix = new Matrix4()
-      .identity()
-      .translate(...modelPart.translation)
-      .rotate(...modelPart.rotation)
-      .scale(...modelPart.scale);
+  // _createPartNode(modelPart) {
+  //   const newNode = new Node();
+  //   newNode.model = modelPart;
+  //   newNode.localMatrix = new Matrix4()
+  //     .identity()
+  //     .translate(...modelPart.translation)
+  //     .rotate(...modelPart.rotation)
+  //     .scale(...modelPart.scale);
 
-    return newNode;
-  }
+  //   return newNode;
+  // }
 }
