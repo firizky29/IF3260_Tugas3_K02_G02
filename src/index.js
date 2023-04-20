@@ -155,7 +155,7 @@ const eventHandler = {
       const angleInDegrees = value;
       const angleInRadians = Converter.degToRad(angleInDegrees);
       state.selectedModel.rotation[index] = angleInRadians;
-      value.innerHTML = angleInDegrees;
+      valueUIElmt.innerHTML = angleInDegrees;
       webgl.drawArticulated(state);
     };
   },
@@ -410,6 +410,14 @@ const eventHandler = {
     };
   },
 
+  closeHelp() {
+    return (event) => {
+      const helpModal = document.querySelector('#modal-help');
+      helpModal.style.display = 'none';
+      helpModal.style.opacity = 0;
+    };
+  }
+
   // toDefaultButtonHandler() {
   //     return (event) => {
   //         document.querySelector('#projection').value = initialState.projectionType;
@@ -587,6 +595,10 @@ UIHandler.initSlider('#camera-view', {
 UIHandler.initSlider('#camera-rotate', {
   initialValue: state.cameraRotation,
   handlerFn: eventHandler.updateCameraRotation(),
+});
+
+UIHandler.initButton('#help-close-btn', {
+  handlerFn: eventHandler.closeHelp(),
 });
 
 // generate button tree
