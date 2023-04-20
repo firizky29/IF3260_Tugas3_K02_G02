@@ -129,6 +129,7 @@ class WebGLHandler {
         modelMatrix: props.modelMatrix.clone(),
         normalMatrix: props.normalMatrix.clone(),
         projectionMatrix: props.projectionMatrix.clone(),
+        textureMode: props.textureMode,
         viewMatrix: props.viewMatrix.clone(),
       };
 
@@ -387,6 +388,9 @@ class WebGLHandler {
       false,
       normalMatrix.flatten()
     );
+
+    console.log(textureMode);
+    console.trace();
 
     // set uniforms on fragment shader
     this._gl.uniform1i(this._glComponent.isShading, isShading);
