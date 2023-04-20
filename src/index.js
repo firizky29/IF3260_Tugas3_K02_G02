@@ -315,7 +315,7 @@ const eventHandler = {
     return (event, value) => {
       builder.setIsPlaying(false);
 
-      state.cameraRotation = Converter.degToRad(value);
+      state.cameraRotation = -Converter.degToRad(value);
       webgl.drawArticulated(state);
     };
   },
