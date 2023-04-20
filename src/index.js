@@ -1,6 +1,5 @@
 let currentNodeCount = 0;
 
-
 // to be deleted
 const cubeModel = {
   num_vertices: 8,
@@ -141,64 +140,64 @@ let state = {
 const eventHandler = {
   updatePosition(index, uiText) {
     return (event, value) => {
+      const valueUIElmt = document.querySelector('#' + uiText);
       builder.setIsPlaying(false);
       state.selectedModel.translation[index] = value;
-      uiText = document.querySelector('#' + uiText);
-      uiText.innerHTML = value;
+      valueUIElmt.innerHTML = value;
       webgl.drawArticulated(state);
     };
   },
 
   updateRotation(index, uiText) {
     return (event, value) => {
+      const valueUIElmt = document.querySelector('#' + uiText);
       builder.setIsPlaying(false);
       const angleInDegrees = value;
       const angleInRadians = Converter.degToRad(angleInDegrees);
       state.selectedModel.rotation[index] = angleInRadians;
-      uiText = document.querySelector('#' + uiText);
-      uiText.innerHTML = angleInDegrees;
+      value.innerHTML = angleInDegrees;
       webgl.drawArticulated(state);
     };
   },
 
   updateScale(index, uiText) {
     return (event, value) => {
+      const valueUIElmt = document.querySelector('#' + uiText);
       builder.setIsPlaying(false);
       state.selectedModel.scale[index] = value;
-      uiText = document.querySelector('#' + uiText);
-      uiText.innerHTML = value;
+      valueUIElmt.innerHTML = value;
       webgl.drawArticulated(state);
     };
   },
 
   updateCompPosition(index, uiText) {
     return (event, value) => {
+      const valueUIElmt = document.querySelector('#' + uiText);
       builder.setIsPlaying(false);
       state.selectedModel.subtree_translate[index] = value;
-      uiText = document.querySelector('#' + uiText);
-      uiText.innerHTML = value;
+      valueUIElmt.innerHTML = value;
       webgl.drawArticulated(state);
     };
   },
 
   updateCompRotation(index, uiText) {
     return (event, value) => {
+      const valueUIElmt = document.querySelector('#' + uiText);
       builder.setIsPlaying(false);
       const angleInDegrees = value;
       const angleInRadians = Converter.degToRad(angleInDegrees);
       state.selectedModel.subtree_rotate[index] = angleInRadians;
-      uiText = document.querySelector('#' + uiText);
-      uiText.innerHTML = angleInDegrees;
+      valueUIElmt.innerHTML = angleInDegrees;
       webgl.drawArticulated(state);
     };
   },
 
   updateCompScale(index, uiText) {
     return (event, value) => {
+      const valueUIElmt = document.querySelector('#' + uiText);
       builder.setIsPlaying(false);
       state.selectedModel.subtree_scale[index] = value;
-      uiText = document.querySelector('#' + uiText);
-      uiText.innerHTML = value;
+      valueUIElmt.innerHTML = value;
       webgl.drawArticulated(state);
     };
   },
@@ -323,7 +322,7 @@ const eventHandler = {
     return (event) => {
       state.selectedModel = model;
       document.querySelector('#chosen-component-name').innerHTML = model.part;
-    }
+    };
   },
 
   saveFrame() {
@@ -333,20 +332,20 @@ const eventHandler = {
       } else {
         builder.addState(state.model);
       }
-    }
+    };
   },
 
   playButton() {
     return (event) => {
       builder.setIsPlaying(true);
       builder.playFrames(state);
-    }
+    };
   },
 
   pauseButton() {
     return (event) => {
       builder.setIsPlaying(false);
-    }
+    };
   },
 
   updateTextureType() {
@@ -360,9 +359,9 @@ const eventHandler = {
       } else if (event.target.value === 'bump') {
         state.textureType = 2;
       }
-      console.log(state.textureType)
+      console.log(state.textureType);
       webgl.drawArticulated(state);
-    }
+    };
   },
 
   saveAnimation() {
@@ -377,7 +376,7 @@ const eventHandler = {
       dlAnchorElem.setAttribute('href', dataStr);
       dlAnchorElem.setAttribute('download', 'animation.json');
       dlAnchorElem.click();
-    }
+    };
   },
 
   loadAnimation() {
@@ -408,9 +407,8 @@ const eventHandler = {
         };
       };
       input.click();
-    }
-  }
-
+    };
+  },
 
   // toDefaultButtonHandler() {
   //     return (event) => {
@@ -456,82 +454,82 @@ UIHandler.initSlider('#obj-translation-y', {
 
 UIHandler.initSlider('#obj-translation-z', {
   initialValue: state.model.translation[2],
-  handlerFn: eventHandler.updatePosition(2 , 'obj-translation-z-value'),
+  handlerFn: eventHandler.updatePosition(2, 'obj-translation-z-value'),
 });
 
 UIHandler.initSlider('#obj-rotation-x', {
   initialValue: state.model.rotation[0],
-  handlerFn: eventHandler.updateRotation(0 , 'obj-rotation-x-value'),
+  handlerFn: eventHandler.updateRotation(0, 'obj-rotation-x-value'),
 });
 
 UIHandler.initSlider('#obj-rotation-y', {
   initialValue: state.model.rotation[1],
-  handlerFn: eventHandler.updateRotation(1 , 'obj-rotation-y-value'),
+  handlerFn: eventHandler.updateRotation(1, 'obj-rotation-y-value'),
 });
 
 UIHandler.initSlider('#obj-rotation-z', {
   initialValue: state.model.rotation[2],
-  handlerFn: eventHandler.updateRotation(2 , 'obj-rotation-z-value'),
+  handlerFn: eventHandler.updateRotation(2, 'obj-rotation-z-value'),
 });
 
 UIHandler.initSlider('#obj-scaling-x', {
   initialValue: state.model.scale[0],
-  handlerFn: eventHandler.updateScale(0 , 'obj-scaling-x-value'),
+  handlerFn: eventHandler.updateScale(0, 'obj-scaling-x-value'),
 });
 
 UIHandler.initSlider('#obj-scaling-y', {
   initialValue: state.model.scale[1],
-  handlerFn: eventHandler.updateScale(1 , 'obj-scaling-y-value'),
+  handlerFn: eventHandler.updateScale(1, 'obj-scaling-y-value'),
 });
 
 UIHandler.initSlider('#obj-scaling-z', {
   initialValue: state.model.scale[2],
-  handlerFn: eventHandler.updateScale(2 , 'obj-scaling-z-value'),
+  handlerFn: eventHandler.updateScale(2, 'obj-scaling-z-value'),
 });
 
 UIHandler.initSlider('#comp-translation-x', {
   initialValue: state.model.translation[0],
-  handlerFn: eventHandler.updateCompPosition(0 , 'comp-translation-x-value'),
+  handlerFn: eventHandler.updateCompPosition(0, 'comp-translation-x-value'),
 });
 
 UIHandler.initSlider('#comp-translation-y', {
   initialValue: state.model.translation[1],
-  handlerFn: eventHandler.updateCompPosition(1 , 'comp-translation-y-value'),
+  handlerFn: eventHandler.updateCompPosition(1, 'comp-translation-y-value'),
 });
 
 UIHandler.initSlider('#comp-translation-z', {
   initialValue: state.model.translation[2],
-  handlerFn: eventHandler.updateCompPosition(2 , 'comp-translation-z-value'),
+  handlerFn: eventHandler.updateCompPosition(2, 'comp-translation-z-value'),
 });
 
 UIHandler.initSlider('#comp-rotation-x', {
   initialValue: state.model.rotation[0],
-  handlerFn: eventHandler.updateCompRotation(0 , 'comp-rotation-x-value'),
+  handlerFn: eventHandler.updateCompRotation(0, 'comp-rotation-x-value'),
 });
 
 UIHandler.initSlider('#comp-rotation-y', {
   initialValue: state.model.rotation[1],
-  handlerFn: eventHandler.updateCompRotation(1 , 'comp-rotation-y-value'),
+  handlerFn: eventHandler.updateCompRotation(1, 'comp-rotation-y-value'),
 });
 
 UIHandler.initSlider('#comp-rotation-z', {
   initialValue: state.model.rotation[2],
-  handlerFn: eventHandler.updateCompRotation(2 , 'comp-rotation-z-value'),
+  handlerFn: eventHandler.updateCompRotation(2, 'comp-rotation-z-value'),
 });
 
 UIHandler.initSlider('#comp-scaling-x', {
   initialValue: state.model.scale[0],
-  handlerFn: eventHandler.updateCompScale(0 , 'comp-scaling-x-value'),
+  handlerFn: eventHandler.updateCompScale(0, 'comp-scaling-x-value'),
 });
 
 UIHandler.initSlider('#comp-scaling-y', {
   initialValue: state.model.scale[1],
-  handlerFn: eventHandler.updateCompScale(1 , 'comp-scaling-y-value'),
+  handlerFn: eventHandler.updateCompScale(1, 'comp-scaling-y-value'),
 });
 
 UIHandler.initSlider('#comp-scaling-z', {
   initialValue: state.model.scale[2],
-  handlerFn: eventHandler.updateCompScale(2 , 'comp-scaling-z-value'),
+  handlerFn: eventHandler.updateCompScale(2, 'comp-scaling-z-value'),
 });
 
 UIHandler.initRadio('#projection', {
@@ -571,7 +569,6 @@ UIHandler.initButton('#load-animation', {
 UIHandler.initButton('#save-frame', {
   handlerFn: eventHandler.saveFrame(),
 });
-
 
 UIHandler.initButton('#pause-button', {
   handlerFn: eventHandler.pauseButton(),
@@ -623,8 +620,6 @@ const generateComponentTree = (model, depth = 0) => {
     }
   }
 };
-
-
 
 state.model.children.push(currentModel2);
 
