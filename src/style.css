@@ -215,33 +215,6 @@ canvas {
   font-size: small;
 }
 
-#help-container {
-  display: none;
-  margin-top : 10px;
-}
-
-#help-content {
-  width: 700px;
-  height: 840px;
-  background-color: #9f9f9f;
-  border: 5px solid #000;
-  border-radius: 4%;
-  padding: 0 20px 20px 20px;
-}
-
-#help-content li {
-  font-size: 14px;
-}
-
-#close {
-  float: right;
-  cursor: pointer;
-  font-size: 50px;
-}
-
-#close:hover {
-  color: #dd0000;
-}
 
 .modal {
   display: none;
@@ -287,16 +260,17 @@ canvas {
   overflow: auto;
 }
 
-.close {
+#help-close-btn {
   color: black;
-  margin-left: auto;
-  font-size: 28px;
+  width: 25px;
+  height: 25px;
+  font-size: larger;
+  text-align: center;
   font-weight: bold;
-  margin-right: 10px;
 }
 
-.close:hover {
-  color: #0e4580;
+#help-close-btn:hover {
+  background-color: #828282;
   text-decoration: none;
   cursor: pointer;
 }
