@@ -1,4 +1,6 @@
 let currentNodeCount = 0;
+
+
 // to be deleted
 const cubeModel = {
   num_vertices: 8,
@@ -64,6 +66,8 @@ const cubeModel2 = {
 
 let webgl = await new WebGLHandler(document.querySelector('canvas')).init();
 
+let builder = new AnimationBuilder(webgl);
+
 let currentModel = {
   object: cubeModel,
   part: 'Part 1',
@@ -94,17 +98,18 @@ const initialState = {
   model: currentModel,
   selectedModel: currentModel,
   projectionType: 'orthographic',
-  useLighting: true,
+  isShading: true,
+  textureType: -1,
   fudgeFactor: 0,
   obliqueTetha: Converter.degToRad(45),
   obliquePhi: Converter.degToRad(45),
-  far: -5,
-  near: 5,
+  far: -1,
+  near: 1,
   top: 1,
   bottom: -1,
   left: -1,
   right: 1,
-  zfar: 5,
+  zfar: 1,
   znear: 0.01,
   cameraRadius: -0.01,
   cameraRotation: Converter.degToRad(0),
@@ -115,6 +120,7 @@ let state = {
   selectedModel: currentModel,
   projectionType: 'orthographic',
   isShading: true,
+  textureType: -1,
   fudgeFactor: 0,
   obliqueTetha: Converter.degToRad(45),
   obliquePhi: Converter.degToRad(45),
@@ -135,7 +141,7 @@ let state = {
 const eventHandler = {
   updatePosition(index) {
     return (event, value) => {
-      // state.animation = false;
+      builder.setIsPlaying(false);
       state.selectedModel.translation[index] = value;
       webgl.drawArticulated(state);
     };
@@ -143,7 +149,7 @@ const eventHandler = {
 
   updateRotation(index) {
     return (event, value) => {
-      // state.animation = false;
+      builder.setIsPlaying(false);
       const angleInDegrees = value;
       const angleInRadians = Converter.degToRad(angleInDegrees);
       state.selectedModel.rotation[index] = angleInRadians;
@@ -153,7 +159,7 @@ const eventHandler = {
 
   updateScale(index) {
     return (event, value) => {
-      // state.animation = false;
+      builder.setIsPlaying(false);
       state.selectedModel.scale[index] = value;
       webgl.drawArticulated(state);
     };
@@ -161,7 +167,7 @@ const eventHandler = {
 
   updateCompPosition(index) {
     return (event, value) => {
-      // state.animation = false;
+      builder.setIsPlaying(false);
       state.selectedModel.subtree_translate[index] = value;
       webgl.drawArticulated(state);
     };
@@ -169,7 +175,7 @@ const eventHandler = {
 
   updateCompRotation(index) {
     return (event, value) => {
-      // state.animation = false;
+      builder.setIsPlaying(false);
       const angleInDegrees = value;
       const angleInRadians = Converter.degToRad(angleInDegrees);
       state.selectedModel.subtree_rotate[index] = angleInRadians;
@@ -179,7 +185,7 @@ const eventHandler = {
 
   updateCompScale(index) {
     return (event, value) => {
-      // state.animation = false;
+      builder.setIsPlaying(false);
       state.selectedModel.subtree_scale[index] = value;
       webgl.drawArticulated(state);
     };
@@ -204,10 +210,8 @@ const eventHandler = {
         reader.onload = async (readerEvent) => {
           var content = readerEvent.target.result;
           content = JSON.parse(content);
-          // set all to default
           state.model = content;
           state.selectedModel = content;
-          // console.log(content);
 
           webgl.destroy();
           webgl = await new WebGLHandler(
@@ -225,7 +229,8 @@ const eventHandler = {
 
   saveModel() {
     return (event) => {
-      // console.log('save model');
+      builder.setIsPlaying(false);      
+
       var dataStr =
         'data:text/json;charset=utf-8,' +
         encodeURIComponent(JSON.stringify(state.model));
@@ -239,6 +244,8 @@ const eventHandler = {
 
   loadModelAsChild() {
     return (event) => {
+      builder.setIsPlaying(false);
+
       console.log('load model as child');
       var input = document.createElement('input');
       input.type = 'file';
@@ -284,6 +291,8 @@ const eventHandler = {
 
   updateCameraRadius() {
     return (event, value) => {
+      builder.setIsPlaying(false);
+      
       state.cameraRadius = value;
       webgl.drawArticulated(state);
     };
@@ -291,17 +300,59 @@ const eventHandler = {
 
   updateCameraRotation() {
     return (event, value) => {
+      builder.setIsPlaying(false);
+
       state.cameraRotation = Converter.degToRad(value);
       webgl.drawArticulated(state);
     };
   },
 
-  selectModel(model) {
-    return (event) => {
-      state.selectedModel = model;
-      document.querySelector('#chosen-component-name').innerHTML = model.part;
-    };
-  },
+    selectModel(model){
+        return (event) => {
+            state.selectedModel = model;
+            document.querySelector('#chosen-component-name').innerHTML = model.part;
+        }
+    },
+
+    saveFrame() {
+        return (event) => {
+            if(builder.isPlaying){
+              builder.setIsPlaying(false);
+            } else {
+              builder.addState(state.model);
+            }
+        }
+    },
+
+    playButton(){
+        return (event) => {
+            builder.setIsPlaying(true);
+            builder.playFrames(state);
+        }
+    },
+
+    pauseButton(){
+        return (event) => {
+            builder.setIsPlaying(false);
+        }
+    },
+
+    updateTextureType(){
+        return (event) => {
+            if(event.target.value === 'none'){
+              state.textureType = -1;
+            } else if(event.target.value === 'image'){
+              state.textureType = 0;
+            } else if(event.target.value === 'environment'){
+              state.textureType = 1;
+            } else if(event.target.value === 'bump'){
+              state.textureType = 2;
+            }
+            console.log(state.textureType)
+            webgl.drawArticulated(state);
+        }
+    }
+
 
   // toDefaultButtonHandler() {
   //     return (event) => {
@@ -430,6 +481,11 @@ UIHandler.initRadio('#projection', {
   handlerFn: eventHandler.updateProjectionType(),
 });
 
+UIHandler.initRadio('#texture', {
+  initialValue: 'none',
+  handlerFn: eventHandler.updateTextureType(),
+});
+
 UIHandler.initButton('#load-model', {
   handlerFn: eventHandler.loadModel(),
 });
@@ -440,6 +496,34 @@ UIHandler.initButton('#save-model', {
 
 UIHandler.initButton('#load-model-as-children', {
   handlerFn: eventHandler.loadModelAsChild(),
+});
+
+UIHandler.initButton('#play-button', {
+    handlerFn: eventHandler.playButton(),
+});
+
+UIHandler.initButton('#save-animation', {
+    handlerFn: eventHandler.saveFrame(),
+});
+
+
+UIHandler.initButton('#pause-button', {
+  handlerFn: eventHandler.pauseButton(),
+});
+
+UIHandler.initCheckbox('#shading', {
+  initialValue: state.isShading,
+  handlerFn: eventHandler.updateShadingState(),
+});
+
+UIHandler.initSlider('#camera-view', {
+  initialValue: state.cameraRadius,
+  handlerFn: eventHandler.updateCameraRadius(),
+});
+
+UIHandler.initSlider('#camera-rotate', {
+  initialValue: state.cameraRotation,
+  handlerFn: eventHandler.updateCameraRotation(),
 });
 
 // generate button tree
@@ -474,78 +558,10 @@ const generateComponentTree = (model, depth = 0) => {
   }
 };
 
-setComponentTree(state.model);
 
-UIHandler.initCheckbox('#shading', {
-  initialValue: state.isShading,
-  handlerFn: eventHandler.updateShadingState(),
-});
 
-UIHandler.initSlider('#camera-view', {
-  initialValue: state.cameraRadius,
-  handlerFn: eventHandler.updateCameraRadius(),
-});
-
-UIHandler.initSlider('#camera-rotate', {
-  initialValue: state.cameraRotation,
-  handlerFn: eventHandler.updateCameraRotation(),
-});
-
-// UIHandler.initButton('button#toDefault', {
-//   handlerFn: eventHandler.toDefaultButtonHandler(),
-// });
-// console.log(state.model)
 state.model.children.push(currentModel2);
-// renderSettings.drawCounter += currentModel2.object.indices.length*6;
 
 setComponentTree(state.model);
 
-// console.log(state.cameraRadius)
 webgl.drawArticulated(state);
-
-// webgl
-//     .clearBuffer()
-//     .setModel(state.model)
-//     .render(renderSettings, state);
-// state.model.object = cubeModel2;
-// renderSettings.drawCounter += cubeModel2.indices.length*6;
-// console.log(renderSettings.drawCounter)
-// const saveToJSON = () => {
-//     let { vertices, colors, normals } = state.model;
-
-//     const json = JSON.stringify({ vertices, colors, normals });
-//     const data = new Blob([json], { type: 'text/plain' });
-//     const textFile = window.URL.createObjectURL(data);
-//     const link = document.createElement('a');
-//     link.setAttribute('download', 'shapes.json');
-//     link.href = textFile;
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-// };
-// document.getElementById('save').addEventListener('click', saveToJSON);
-
-// const startAnimation = () => {
-//     state.animation = true;
-//     webgl.clearBuffer().renderAnimation(renderSettings, state);
-// };
-// document.getElementById('animate').addEventListener('click', startAnimation);
-
-// const stopAnimation = () => {
-//     state.animation = false;
-//     webgl.clearBuffer().renderAnimation(renderSettings, state);
-// };
-
-// document
-//   .getElementById('stop_animate')
-//   .addEventListener('click', stopAnimation);
-
-// var modal = document.getElementById('modal')
-// var btn = document.getElementById('help-btn')
-// var span = document.getElementsByClassName('close')[0]
-// btn.onclick = function () {
-//   modal.style.display = 'block'
-// }
-// span.onclick = function () {
-//   modal.style.display = 'none'
-// }

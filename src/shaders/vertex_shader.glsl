@@ -5,9 +5,9 @@ precision mediump float;
 in vec4 a_position;
 in vec4 a_color;
 in vec3 a_normal;
-// attribute vec3 a_tangent;
-// attribute vec3 a_bitangent;
-// attribute vec2 a_texCoord;
+in vec3 a_tangent;
+in vec3 a_bitangent;
+in vec2 a_texCoord;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -18,9 +18,9 @@ out vec4 v_color;
 out vec3 v_modelPosition;
 out vec3 v_viewModelPosition;
 out vec3 v_worldNormal;
-// varying vec2 v_textureCoord;
+out vec2 v_textureCoord;
+out mat3 v_tbn;
 
-// varying mat3 v_tbn;
 
 // mat3 transpose(in mat3 inMatrix)
 // {
@@ -45,12 +45,12 @@ void main() {
   v_color = a_color;
   v_modelPosition = vec3(modelMatrix * a_position);
   v_viewModelPosition = vec3(vm * a_position);
-  v_worldNormal = mat3(modelMatrix) * a_normal;
-  // v_textureCoord = a_texCoord;
+  v_worldNormal = mat3(normalMatrix) * a_normal;
+  v_textureCoord = a_texCoord;
 
   // Bump mapping variables
-  // vec3 t = normalize(mat3(normalMatrix) * a_tangent);
-  // vec3 b = normalize(mat3(normalMatrix) * a_bitangent);
-  // vec3 n = normalize(mat3(normalMatrix) * a_normal);
-  // v_tbn = transpose(mat3(t, b, n));
+  vec3 t = normalize(mat3(normalMatrix) * a_tangent);
+  vec3 b = normalize(mat3(normalMatrix) * a_bitangent);
+  vec3 n = normalize(mat3(normalMatrix) * a_normal);
+  v_tbn = transpose(mat3(t, b, n));
 }
