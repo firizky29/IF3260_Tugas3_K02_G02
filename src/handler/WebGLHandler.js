@@ -389,9 +389,6 @@ class WebGLHandler {
       normalMatrix.flatten()
     );
 
-    console.log(textureMode);
-    console.trace();
-
     // set uniforms on fragment shader
     this._gl.uniform1i(this._glComponent.isShading, isShading);
     this._gl.uniform1i(this._glComponent.textureMode, Number(textureMode));

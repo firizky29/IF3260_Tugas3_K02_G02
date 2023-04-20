@@ -195,7 +195,7 @@
         ]
       },
       "textureType": "environment",
-      "translation": [0, 0, 0],
+      "translation": [0.6, 0, 0],
       "rotation": [0, 0, 0],
       "scale": [1, 1, 1],
       "subtree_translate": [0, 0, 0],
@@ -236,7 +236,7 @@
         ]
       },
       "textureType": "environment",
-      "translation": [0, 0, 0],
+      "translation": [0.6, 0, 0],
       "rotation": [0, 0, 0],
       "scale": [1, 1, 1],
       "subtree_translate": [0, 0, 0],

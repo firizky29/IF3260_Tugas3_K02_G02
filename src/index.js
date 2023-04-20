@@ -322,6 +322,7 @@ const eventHandler = {
     return (event) => {
       state.selectedModel = model;
       document.querySelector('#chosen-component-name').innerHTML = model.part;
+      setInitialUITransformation();
     };
   },
 
@@ -416,7 +417,7 @@ const eventHandler = {
       helpModal.style.display = 'none';
       helpModal.style.opacity = 0;
     };
-  }
+  },
 
   // toDefaultButtonHandler() {
   //     return (event) => {
@@ -606,6 +607,7 @@ const setComponentTree = (model) => {
   const componentTree = document.querySelector('#component-tree');
   componentTree.innerHTML = '';
   generateComponentTree(model);
+  setInitialUITransformation();
 };
 
 const generateComponentTree = (model, depth = 0) => {
@@ -633,8 +635,54 @@ const generateComponentTree = (model, depth = 0) => {
   }
 };
 
+const setInitialUITransformation = () => {
+  const modelSettings = state.selectedModel;
+
+  const setInitialSliderValue = (toolId) => {
+    const objTransformationTool = document.querySelector(toolId);
+    const transformationType =
+      toolId.split('-')[1] === 'scaling' ? 'scale' : toolId.split('-')[1];
+
+    let modelPropName = transformationType;
+
+    if (!toolId.split('-')[0].includes('obj')) {
+      modelPropName = 'subtree_';
+      switch (transformationType) {
+        case 'translation':
+          modelPropName += 'translate';
+          break;
+        case 'rotation':
+          modelPropName += 'rotate';
+          break;
+        default:
+          modelPropName += 'scale';
+          break;
+      }
+    }
+
+    const objTransformationInput =
+      objTransformationTool.querySelectorAll('input');
+    for (let i = 0; i < objTransformationInput.length; i++) {
+      let modelValue = modelSettings[modelPropName][i];
+      if (modelPropName.includes('rotat')) {
+        modelValue = Converter.radToDeg(modelValue);
+      }
+      objTransformationInput[i].value = modelValue.toString();
+      objTransformationInput[i].dispatchEvent(new Event('input'));
+    }
+  };
+
+  setInitialSliderValue('#obj-translation-tool');
+  setInitialSliderValue('#obj-rotation-tool');
+  setInitialSliderValue('#obj-scaling-tool');
+  setInitialSliderValue('#comp-scaling-tool');
+  setInitialSliderValue('#comp-rotation-tool');
+  setInitialSliderValue('#comp-translation-tool');
+};
+
 state.model.children.push(currentModel2);
 
 setComponentTree(state.model);
+setInitialUITransformation();
 
 webgl.drawArticulated(state);
