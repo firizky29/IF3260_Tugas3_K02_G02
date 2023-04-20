@@ -301,7 +301,7 @@ class WebGLHandler {
 
   _updateProperties(model, props) {
     // console.log(this._nodesDetails.parentNode);
-    props.modelMatrix.transform(model.translation, model.rotation, model.scale);
+    props.modelMatrix = props.modelMatrix.clone().transform(model.translation, model.rotation, model.scale);
 
     props.normalMatrix = props.modelMatrix
       .clone()

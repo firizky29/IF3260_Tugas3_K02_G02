@@ -213,10 +213,10 @@ const eventHandler = {
           state.model = content;
           state.selectedModel = content;
 
-          webgl.destroy();
-          webgl = await new WebGLHandler(
-            document.querySelector('canvas')
-          ).init();
+          // webgl.destroy();
+          // webgl = await new WebGLHandler(
+          //   document.querySelector('canvas')
+          // ).init();
 
           webgl.clearCanvas().drawArticulated(state);
 
@@ -229,7 +229,7 @@ const eventHandler = {
 
   saveModel() {
     return (event) => {
-      builder.setIsPlaying(false);      
+      builder.setIsPlaying(false);
 
       var dataStr =
         'data:text/json;charset=utf-8,' +
@@ -292,7 +292,7 @@ const eventHandler = {
   updateCameraRadius() {
     return (event, value) => {
       builder.setIsPlaying(false);
-      
+
       state.cameraRadius = value;
       webgl.drawArticulated(state);
     };
@@ -307,51 +307,97 @@ const eventHandler = {
     };
   },
 
-    selectModel(model){
-        return (event) => {
-            state.selectedModel = model;
-            document.querySelector('#chosen-component-name').innerHTML = model.part;
-        }
-    },
-
-    saveFrame() {
-        return (event) => {
-            if(builder.isPlaying){
-              builder.setIsPlaying(false);
-            } else {
-              builder.addState(state.model);
-            }
-        }
-    },
-
-    playButton(){
-        return (event) => {
-            builder.setIsPlaying(true);
-            builder.playFrames(state);
-        }
-    },
-
-    pauseButton(){
-        return (event) => {
-            builder.setIsPlaying(false);
-        }
-    },
-
-    updateTextureType(){
-        return (event) => {
-            if(event.target.value === 'none'){
-              state.textureType = -1;
-            } else if(event.target.value === 'image'){
-              state.textureType = 0;
-            } else if(event.target.value === 'environment'){
-              state.textureType = 1;
-            } else if(event.target.value === 'bump'){
-              state.textureType = 2;
-            }
-            console.log(state.textureType)
-            webgl.drawArticulated(state);
-        }
+  selectModel(model) {
+    return (event) => {
+      state.selectedModel = model;
+      document.querySelector('#chosen-component-name').innerHTML = model.part;
     }
+  },
+
+  saveFrame() {
+    return (event) => {
+      if (builder.isPlaying) {
+        builder.setIsPlaying(false);
+      } else {
+        builder.addState(state.model);
+      }
+    }
+  },
+
+  playButton() {
+    return (event) => {
+      builder.setIsPlaying(true);
+      builder.playFrames(state);
+    }
+  },
+
+  pauseButton() {
+    return (event) => {
+      builder.setIsPlaying(false);
+    }
+  },
+
+  updateTextureType() {
+    return (event) => {
+      if (event.target.value === 'none') {
+        state.textureType = -1;
+      } else if (event.target.value === 'image') {
+        state.textureType = 0;
+      } else if (event.target.value === 'environment') {
+        state.textureType = 1;
+      } else if (event.target.value === 'bump') {
+        state.textureType = 2;
+      }
+      console.log(state.textureType)
+      webgl.drawArticulated(state);
+    }
+  },
+
+  saveAnimation() {
+    return (event) => {
+      builder.setIsPlaying(false);
+
+      var dataStr =
+        'data:text/json;charset=utf-8,' +
+        encodeURIComponent(JSON.stringify(builder.frames));
+
+      var dlAnchorElem = document.createElement('a');
+      dlAnchorElem.setAttribute('href', dataStr);
+      dlAnchorElem.setAttribute('download', 'animation.json');
+      dlAnchorElem.click();
+    }
+  },
+
+  loadAnimation() {
+    return (event) => {
+      builder.setIsPlaying(false);
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.setAttribute('accept', 'application/json, .txt');
+      input.onchange = (e) => {
+        var file = e.target.files[0];
+
+        if (!file) {
+          return;
+        }
+
+        var reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+
+        reader.onload = (readerEvent) => {
+          var content = readerEvent.target.result;
+          content = JSON.parse(content);
+          // set all to default
+          builder.frames = content;
+
+          builder.setIsPlaying(true);
+
+          // setComponentTree(state.model);
+        };
+      };
+      input.click();
+    }
+  }
 
 
   // toDefaultButtonHandler() {
@@ -499,11 +545,19 @@ UIHandler.initButton('#load-model-as-children', {
 });
 
 UIHandler.initButton('#play-button', {
-    handlerFn: eventHandler.playButton(),
+  handlerFn: eventHandler.playButton(),
 });
 
 UIHandler.initButton('#save-animation', {
-    handlerFn: eventHandler.saveFrame(),
+  handlerFn: eventHandler.saveAnimation(),
+});
+
+UIHandler.initButton('#load-animation', {
+  handlerFn: eventHandler.loadAnimation(),
+});
+
+UIHandler.initButton('#save-frame', {
+  handlerFn: eventHandler.saveFrame(),
 });
 
 
