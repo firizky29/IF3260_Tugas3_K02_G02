@@ -26,7 +26,7 @@ out vec4 outColor;
 void main() {
    vec3 worldNormal = normalize(v_worldNormal);
 
-   vec3 ambientLight = vec3(0.9, 0.9, 0.9);
+   vec3 ambientLight = vec3(0.6, 0.6, 0.6);
    vec3 diffuseColor = vec3(1, 1, 1);
    // vec3 lightPosition = normalize(vec3(0.2, 0.4, 1));
 
@@ -54,7 +54,7 @@ void main() {
 
       vec3 lightDir = normalize(lightPos - fragPos);
       vec3 albedo = texture(u_texture_bump, v_textureCoord).rgb;
-      vec3 ambient = 0.3 * albedo;
+      vec3 ambient = 0.8 * albedo;
 
       vec3 norm = normalize(texture(u_texture_bump, v_textureCoord).rgb * 2.0 - 1.0);
       float diffuse = max(dot(lightDir, norm), 0.0);
