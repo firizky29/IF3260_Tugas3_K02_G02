@@ -70,7 +70,7 @@ let builder = new AnimationBuilder(webgl);
 let currentModel = {
   object: cubeModel,
   part: 'Part 1',
-  textureType: 'NONE',
+  textureType: 'image',
   translation: [0, 0, 0],
   rotation: [0, 0, 0],
   scale: [1, 1, 1],
@@ -93,7 +93,7 @@ let currentModel2 = {
   children: [],
 };
 
-const initialState = {
+let initialState = {
   model: currentModel,
   selectedModel: currentModel,
   projectionType: 'orthographic',
@@ -220,9 +220,11 @@ const eventHandler = {
 
         reader.onload = async (readerEvent) => {
           var content = readerEvent.target.result;
-          content = JSON.parse(content);
-          state.model = content;
-          state.selectedModel = content;
+          const contentToState = JSON.parse(content);
+
+          state.model = contentToState;
+          state.selectedModel = contentToState;
+          initialState = JSON.stringify(state); // need to be done to diversify state and initialstate content
 
           // webgl.destroy();
           // webgl = await new WebGLHandler(
@@ -419,6 +421,22 @@ const eventHandler = {
     };
   },
 
+  resetModel() {
+    return (event) => {
+      state = JSON.parse(initialState);
+      state.selectedModel = state.model;
+
+      document.querySelector('#projection').value = state.projectionType;
+      document.querySelector('#shading').checked = state.isShading;
+      document.querySelector('#texture').value = 'none';
+      document.querySelector('#camera-rotate').value = state.cameraRotation;
+      document.querySelector('#camera-view').value = state.cameraRadius;
+
+      setComponentTree(state.model);
+      setInitialUITransformation();
+    };
+  },
+
   // toDefaultButtonHandler() {
   //     return (event) => {
   //         document.querySelector('#projection').value = initialState.projectionType;
@@ -602,15 +620,19 @@ UIHandler.initButton('#help-close-btn', {
   handlerFn: eventHandler.closeHelp(),
 });
 
+UIHandler.initButton('#clear', {
+  handlerFn: eventHandler.resetModel(),
+});
+
 // generate button tree
-const setComponentTree = (model) => {
+function setComponentTree(model) {
   const componentTree = document.querySelector('#component-tree');
   componentTree.innerHTML = '';
   generateComponentTree(model);
   setInitialUITransformation();
-};
+}
 
-const generateComponentTree = (model, depth = 0) => {
+function generateComponentTree(model, depth = 0) {
   currentNodeCount++;
   const componentTree = document.querySelector('#component-tree');
   const button = document.createElement('button');
@@ -633,9 +655,9 @@ const generateComponentTree = (model, depth = 0) => {
       generateComponentTree(model.children[i], depth + 1);
     }
   }
-};
+}
 
-const setInitialUITransformation = () => {
+function setInitialUITransformation() {
   const modelSettings = state.selectedModel;
 
   const setInitialSliderValue = (toolId) => {
@@ -678,7 +700,7 @@ const setInitialUITransformation = () => {
   setInitialSliderValue('#comp-scaling-tool');
   setInitialSliderValue('#comp-rotation-tool');
   setInitialSliderValue('#comp-translation-tool');
-};
+}
 
 state.model.children.push(currentModel2);
 
