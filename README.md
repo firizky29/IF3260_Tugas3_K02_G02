@@ -2,19 +2,31 @@
 Program berupa website ini dibuat untuk menyelesaikan Tugas Besar 3 IF3260 Grafika Komputer.
 
 ## Deskripsi program
-Program dirancang untuk menghasilkan sebuah website yang menampilkan `isi disini` serta menyediakan utilitas-utilitas untuk mengubah tampilan model tersebut. Website ini ditujukan untuk memenuhi Tugas Besar 3 pada mata kuliah IF3260 Grafika Komputer untuk tahun ajaran 2022/2023. Program ini dirancang dengan menggunakan bahasa pemrograman HTML, CSS, dan vanilla Javascript.
+Program dirancang untuk menghasilkan sebuah website yang menampilkan _Articulated Model_ dalam bentuk 3D serta menyediakan utilitas-utilitas untuk mengubah tampilan model tersebut. Website ini ditujukan untuk memenuhi Tugas Besar 3 pada mata kuliah IF3260 Grafika Komputer untuk tahun ajaran 2022/2023. Program ini dirancang dengan menggunakan bahasa pemrograman HTML, CSS, dan vanilla Javascript.
 <br><br>
 
-3D WebGL <i><strong>Articulated Model</strong></i> diimplementasikan dengan WebGL dan dirancang untuk menampilkan `isi disini`.
-<br><br>
+3D WebGL <i><strong>Articulated Model</strong></i> diimplementasikan dengan WebGL dan dirancang untuk menampilkan model manusia, kupu-kupu, kuda, dan bebek, di mana setiap model memiliki komponen tubuh yang secara kasar meniru bagian tubuh dari model nyata tersebut.
 
-`isi fungsionalitas lebih detail disini`.
+Beberapa fitur yang tersedia pada website ini ialah sebagai berikut.
+* Load dan Save File
+* Transformasi (translasi, rotasi, dan scaling) pada model
+* Proyeksi terhadap model (orthographic, oblique atau perspective)
+* Kontrol terhadap camera (view dan rotation)
+* Shading
+* tekstur komponen (bump, reflective, custom)
+* Animasi model
+* Help
+* Reset Model
+* 
 
 
 ## Fitur Spesifikasi Lanjutan
-- `sini`
-- `sini`
+- Component Tree dari model
+- Transformasi (translasi, rotasi, dan scaling) pada komponen model
+- Save dan Load Animasi
+- Animation Controller
 
+<br>
 
 ## Menjalankan program
 ### Requirement
@@ -27,6 +39,7 @@ Program dirancang untuk menghasilkan sebuah website yang menampilkan `isi disini
 2. Klik kanan, lalu klik `Open with Live Server`
 3. Website siap digunakan
 
+<br>
 
 ## Contributors
 ### Kelas 02 - Kelompok 02

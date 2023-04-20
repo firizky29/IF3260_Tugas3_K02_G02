@@ -112,8 +112,18 @@
           <label for="animation-file-tool">Save and Load Animation</label>
           <div id="animation-file-tool">
             <button id="save-animation">Save Animation</button>
-            <input type="file" id="load-src" accept=".json,application/json" style="display: none" />
-            <button id="load-animation" onclick="document.getElementById('load-src').click()">Load Animation</button>
+            <!-- <input type="file" id="load-src" accept=".json,application/json" style="display: none" /> -->
+            <!-- onclick="document.getElementById('load-src').click()" -->
+            <button 
+              id="load-animation" 
+            >
+              Load Animation
+            </button>
+          </div>
+          <div>
+            <button id="save-frame">Save Frame</button>
+            <!-- <input type="file" id="load-src" accept=".json,application/json" style="display: none" /> -->
+            <!-- onclick="document.getElementById('load-src').click()" -->
           </div>
         </div>
         <div id="component-view-container">
@@ -170,11 +180,11 @@
                   )
                 </p>
                 <label for="obj-scaling-x">X</label>
-                <input type="range" id="obj-scaling-x" value="1" min="0.1" max="1" step="0.1" /><br>
+                <input type="range" id="obj-scaling-x" value="1" min="0.1" max="5" step="0.1" /><br>
                 <label for="obj-scaling-y">Y</label>
-                <input type="range" id="obj-scaling-y" value="1" min="0.1" max="1" step="0.1" /><br>
+                <input type="range" id="obj-scaling-y" value="1" min="0.1" max="5" step="0.1" /><br>
                 <label for="obj-scaling-z">Z</label>
-                <input type="range" id="obj-scaling-z" value="1" min="0.1" max="1" step="0.1" /><br>
+                <input type="range" id="obj-scaling-z" value="1" min="0.1" max="5" step="0.1" /><br>
               </div>
             </div>
           </div>
@@ -222,11 +232,11 @@
                   )
                 </p>
                 <label for="comp-scaling-x">X</label>
-                <input type="range" id="comp-scaling-x" min="0.1" max="1" value="1" step="0.1" /><br>
+                <input type="range" id="comp-scaling-x" min="0.1" max="5" value="1" step="0.1" /><br>
                 <label for="comp-scaling-y">Y</label>
-                <input type="range" id="comp-scaling-y" min="0.1" max="1" value="1" step="0.1" /><br>
+                <input type="range" id="comp-scaling-y" min="0.1" max="5" value="1" step="0.1" /><br>
                 <label for="comp-scaling-z">Z</label>
-                <input type="range" id="comp-scaling-z" min="0.1" max="1" value="1" step="0.1" /><br>
+                <input type="range" id="comp-scaling-z" min="0.1" max="5" value="1" step="0.1" /><br>
               </div>
             </div>
           </div>
@@ -235,14 +245,7 @@
     </div>
 
     <!-- modal -->
-    <div
-    class="modal fade"
-    id="modal-help"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modal-help"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="modal-help" tabindex="-1" role="dialog" aria-labelledby="modal-help" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -321,29 +324,6 @@
         <div class="modal-footer">
           <button data-bs-dismiss="modal">Close</button>
         </div>
-      </div>
-    </div>
-
-    <div id="help-container">
-      <div id="help-content">
-        <span id="close">&times;</span>
-        <h2>ingfo</h2>
-        <ul>
-          <li>lorem</li>
-          <li>ipsum</li>
-          <li>doloromet</li>
-        </ul>
-        <h2>ingfo</h2>
-        <ul>
-          <li>lorem</li>
-          <li>ipsum</li>
-          <li>doloromet</li>
-        </ul>
-        <h1>KONTRIBUTOR</h1>
-        <h3>13519220 - Leo Cardhio Sih Pratama</h3>
-        <h3>13520063 - Louis Yanggara</h3>
-        <h3>13520092 - Vieri Mansyl</h3>
-        <h3>13520095 - Firizky Ardiansyah</p>
       </div>
     </div>
   </div>

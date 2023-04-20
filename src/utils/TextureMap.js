@@ -75,7 +75,7 @@ class TextureMap {
    * @returns - The texture.
    */
   static image(gl) {
-    const url = "./assets/sun.jpg";
+    const url = "./assets/wibu.jpg";
     
     return TextureMap.loadTexture2D(gl, url);
   }
