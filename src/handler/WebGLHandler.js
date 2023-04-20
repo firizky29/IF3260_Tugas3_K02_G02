@@ -123,7 +123,16 @@ class WebGLHandler {
 
     // draw children model
     for (let i = 0; i < model.children.length; i++) {
-      this.drawModel(model.children[i], props);
+      const duplicateProps = {
+        cameraPos: props.cameraPos,
+        isShading: props.isShading,
+        modelMatrix: props.modelMatrix.clone(),
+        normalMatrix: props.normalMatrix.clone(),
+        projectionMatrix: props.projectionMatrix.clone(),
+        viewMatrix: props.viewMatrix.clone(),
+      };
+
+      this.drawModel(model.children[i], duplicateProps);
     }
 
     return this;
@@ -301,7 +310,9 @@ class WebGLHandler {
 
   _updateProperties(model, props) {
     // console.log(this._nodesDetails.parentNode);
-    props.modelMatrix = props.modelMatrix.clone().transform(model.translation, model.rotation, model.scale);
+    props.modelMatrix = props.modelMatrix
+      .clone()
+      .transform(model.translation, model.rotation, model.scale);
 
     props.normalMatrix = props.modelMatrix
       .clone()
@@ -682,5 +693,4 @@ class WebGLHandler {
     }
     this._gl.deleteProgram(this._glComponent.program);
   }
-
 }
