@@ -32,21 +32,21 @@ class WebGLHandler {
       'normalMatrix',
       // // fragment shader uniforms
       'isShading',
-      // 'textureMode',
+      'textureMode',
       'u_reverseLightDirection',
       'u_worldCameraPosition',
-      // 'u_texture_image',
-      // 'u_texture_environment',
-      // 'u_texture_bump'
+      'u_texture_image',
+      'u_texture_env',
+      'u_texture_bump'
     ];
 
     this._attributes = [
       'a_position',
       'a_color',
       'a_normal',
-      // 'a_tangent',
-      // 'a_bitangent',
-      // 'a_texCoord'
+      'a_tangent',
+      'a_bitangent',
+      'a_texCoord'
     ];
 
     this._drawCounter = 0;
@@ -208,7 +208,14 @@ class WebGLHandler {
       }
 
       // set texture coordinates
-      glTexCoords = glTexCoords.concat([0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1]);
+      glTexCoords = glTexCoords.concat([
+        1, 0, 
+        0, 0, 
+        0, 1, 
+        1, 0, 
+        0, 1, 
+        1, 1
+      ]);
 
       this._drawCounter += 6;
     }
@@ -266,6 +273,7 @@ class WebGLHandler {
     const viewModelMatrix = modelMatrix.clone().multiply(viewMatrix.clone());
     const normalMatrix = viewModelMatrix.inverse().transpose();
     const isShading = state.isShading;
+    const textureMode = state.textureType;
 
     const uniforms = {
       projectionMatrix,
@@ -274,6 +282,7 @@ class WebGLHandler {
       normalMatrix,
       cameraPos,
       isShading,
+      textureMode
     };
     this._setUniforms(uniforms);
 
@@ -340,6 +349,7 @@ class WebGLHandler {
       normalMatrix,
       cameraPos,
       isShading,
+      textureMode
     } = props;
     // set uniforms on vertex shader
     this._gl.uniformMatrix4fv(
@@ -365,26 +375,27 @@ class WebGLHandler {
 
     // set uniforms on fragment shader
     this._gl.uniform1i(this._glComponent.isShading, isShading);
-    // this._gl.uniform1i(this._glComponent.textureMode, Number(this.textureMode));
+    this._gl.uniform1i(this._glComponent.textureMode, Number(textureMode));
     this._gl.uniform3fv(
       this._glComponent.u_reverseLightDirection,
       GeometryOp.normalize([0, 0, -1.0])
     );
-    // this._gl.uniform3fv(this._glComponent.u_worldCameraPosition, cameraPos);
+    this._gl.uniform3fv(this._glComponent.u_worldCameraPosition, cameraPos);
 
     // Set texture
     // image
-    // this._gl.uniform1i(this._glComponent.u_texture_image, 0);
-    // this._gl.activeTexture(this._gl.TEXTURE0);
-    // this._gl.bindTexture(this._gl.TEXTURE_2D, this.textures.image);
-    // // environment
-    // this._gl.uniform1i(this._glComponent.u_texture_env, 1);
-    // this._gl.activeTexture(this._gl.TEXTURE1);
-    // this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this.textures.environment);
-    // // bump
-    // this._gl.uniform1i(this._glComponent.u_texture_bump, 2);
-    // this._gl.activeTexture(this._gl.TEXTURE2);
-    // this._gl.bindTexture(this._gl.TEXTURE_2D, this.textures.bump);
+    this._gl.uniform1i(this._glComponent.u_texture_image, 0);
+    this._gl.activeTexture(this._gl.TEXTURE0);
+    // console.log(this._gl.TEXTURE0)
+    this._gl.bindTexture(this._gl.TEXTURE_2D, this._glComponent.textures.image);
+    // environment
+    this._gl.uniform1i(this._glComponent.u_texture_env, 1);
+    this._gl.activeTexture(this._gl.TEXTURE1);
+    this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glComponent.textures.environment);
+    // bump
+    this._gl.uniform1i(this._glComponent.u_texture_bump, 2);
+    this._gl.activeTexture(this._gl.TEXTURE2);
+    this._gl.bindTexture(this._gl.TEXTURE_2D, this._glComponent.textures.bump);
 
     return this;
   }
@@ -424,20 +435,20 @@ class WebGLHandler {
     );
     this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
 
-    // // bind Tangent buffer
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.tangentBuffer);
-    // this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(tangents), this._gl.STATIC_DRAW);
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+    // bind Tangent buffer
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.tangentBuffer);
+    this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(tangents), this._gl.STATIC_DRAW);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
 
-    // // bind Bitangent buffer
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.bitangentBuffer);
-    // this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(bitangents), this._gl.STATIC_DRAW);
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+    // bind Bitangent buffer
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.bitangentBuffer);
+    this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(bitangents), this._gl.STATIC_DRAW);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
 
-    // // bind TextureCoord buffer
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.textureCoordBuffer);
-    // this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(textureCoords), this._gl.STATIC_DRAW);
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+    // bind TextureCoord buffer
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.textureCoordBuffer);
+    this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(textureCoords), this._gl.STATIC_DRAW);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
 
     return this;
   }
@@ -479,41 +490,41 @@ class WebGLHandler {
       0
     );
 
-    // // set Tangent buffer
-    // this._gl.enableVertexAttribArray(this._glComponent.tangentAttribLoc);
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.tangentBuffer);
-    // this._gl.vertexAttribPointer(
-    //   this._glComponent.tangentAttribLoc,
-    //   3,
-    //   this._gl.FLOAT,
-    //   false,
-    //   0,
-    //   0
-    // );
+    // set Tangent buffer
+    this._gl.enableVertexAttribArray(this._glComponent.tangentAttribLoc);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.tangentBuffer);
+    this._gl.vertexAttribPointer(
+      this._glComponent.tangentAttribLoc,
+      3,
+      this._gl.FLOAT,
+      false,
+      0,
+      0
+    );
 
-    // // set Bitangent buffer
-    // this._gl.enableVertexAttribArray(this._glComponent.bitangentAttribLoc);
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.bitangentBuffer);
-    // this._gl.vertexAttribPointer(
-    //   this._glComponent.bitangentAttribLoc,
-    //   3,
-    //   this._gl.FLOAT,
-    //   false,
-    //   0,
-    //   0
-    // );
+    // set Bitangent buffer
+    this._gl.enableVertexAttribArray(this._glComponent.bitangentAttribLoc);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.bitangentBuffer);
+    this._gl.vertexAttribPointer(
+      this._glComponent.bitangentAttribLoc,
+      3,
+      this._gl.FLOAT,
+      false,
+      0,
+      0
+    );
 
-    // // set TextureCoord buffer
-    // this._gl.enableVertexAttribArray(this._glComponent.textureCoordAttribLoc);
-    // this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.textureCoordBuffer);
-    // this._gl.vertexAttribPointer(
-    //   this._glComponent.textureCoordAttribLoc,
-    //   2,
-    //   this._gl.FLOAT,
-    //   false,
-    //   0,
-    //   0
-    // );
+    // set TextureCoord buffer
+    this._gl.enableVertexAttribArray(this._glComponent.texCoordAttribLoc);
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._glComponent.textureCoordBuffer);
+    this._gl.vertexAttribPointer(
+      this._glComponent.texCoordAttribLoc,
+      2,
+      this._gl.FLOAT,
+      false,
+      0,
+      0
+    );
 
     return this;
   }
@@ -836,12 +847,14 @@ class WebGLHandler {
 
   _createBuffers() {
     for (let buffer of this._buffers) {
+      // console.log(buffer)
       this._glComponent[buffer] = this._gl.createBuffer();
     }
   }
 
   _createUniformLocations() {
     for (let uniform of this._uniforms) {
+      // console.log(uniform)
       this._glComponent[uniform] = this._gl.getUniformLocation(
         this._glComponent.program,
         uniform
@@ -852,7 +865,7 @@ class WebGLHandler {
   _createAttributeLocations() {
     for (let attribute of this._attributes) {
       const attributeName = attribute.replace('a_', '') + 'AttribLoc';
-      // console.log(attributeName, attribute)
+      console.log(attributeName, attribute)
       this._glComponent[attributeName] = this._gl.getAttribLocation(
         this._glComponent.program,
         attribute

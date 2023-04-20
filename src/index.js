@@ -98,17 +98,18 @@ const initialState = {
   model: currentModel,
   selectedModel: currentModel,
   projectionType: 'orthographic',
-  useLighting: true,
+  isShading: true,
+  textureType: -1,
   fudgeFactor: 0,
   obliqueTetha: Converter.degToRad(45),
   obliquePhi: Converter.degToRad(45),
-  far: -5,
-  near: 5,
+  far: -1,
+  near: 1,
   top: 1,
   bottom: -1,
   left: -1,
   right: 1,
-  zfar: 5,
+  zfar: 1,
   znear: 0.01,
   cameraRadius: -0.01,
   cameraRotation: Converter.degToRad(0),
@@ -119,6 +120,7 @@ let state = {
   selectedModel: currentModel,
   projectionType: 'orthographic',
   isShading: true,
+  textureType: -1,
   fudgeFactor: 0,
   obliqueTetha: Converter.degToRad(45),
   obliquePhi: Converter.degToRad(45),
@@ -333,6 +335,22 @@ const eventHandler = {
         return (event) => {
             builder.setIsPlaying(false);
         }
+    },
+
+    updateTextureType(){
+        return (event) => {
+            if(event.target.value === 'none'){
+              state.textureType = -1;
+            } else if(event.target.value === 'image'){
+              state.textureType = 0;
+            } else if(event.target.value === 'environment'){
+              state.textureType = 1;
+            } else if(event.target.value === 'bump'){
+              state.textureType = 2;
+            }
+            console.log(state.textureType)
+            webgl.drawArticulated(state);
+        }
     }
 
 
@@ -461,6 +479,11 @@ UIHandler.initSlider('#comp-scaling-z', {
 UIHandler.initRadio('#projection', {
   initialValue: state.projectionType,
   handlerFn: eventHandler.updateProjectionType(),
+});
+
+UIHandler.initRadio('#texture', {
+  initialValue: 'none',
+  handlerFn: eventHandler.updateTextureType(),
 });
 
 UIHandler.initButton('#load-model', {
