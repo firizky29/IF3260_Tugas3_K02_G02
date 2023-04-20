@@ -12,6 +12,7 @@ Beberapa fitur yang tersedia pada website ini ialah sebagai berikut.
 * Transformasi (translasi, rotasi, dan scaling) pada model
 * Proyeksi terhadap model (orthographic, oblique atau perspective)
 * Kontrol terhadap camera (view dan rotation)
+* Transformasi (translasi, rotasi, dan scaling) pada komponen model
 * Shading
 * tekstur komponen (bump, reflective, custom)
 * Animasi model
@@ -19,12 +20,10 @@ Beberapa fitur yang tersedia pada website ini ialah sebagai berikut.
 * Reset Model
 * 
 
-
 ## Fitur Spesifikasi Lanjutan
 - Component Tree dari model
-- Transformasi (translasi, rotasi, dan scaling) pada komponen model
+- Load Model sebagai Children
 - Save dan Load Animasi
-- Animation Controller
 
 <br>
 
