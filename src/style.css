@@ -24,14 +24,14 @@ html, body {
 #upper-working-container {
   display: flex;
   width: 100%;
-  height: 350px;
+  height: 450px;
   flex-direction: row;
   justify-content: space-evenly;
 }
 
 canvas {
-  width: 350px;
-  height: 350px;
+  width: 450px;
+  height: 450px;
   display: block;
   margin: auto;
   background-color: #ffffff;
@@ -39,8 +39,8 @@ canvas {
 }
 
 #whatnot-controller {
-  width: 300px;
-  height: 335px;
+  width: 350px;
+  height: 445px;
   padding: 10px;
   overflow: auto;
   background-color: #9f9f9f;
@@ -146,7 +146,7 @@ canvas {
 
 #component-view-container {
   width: 350px;
-  height: 300px;
+  height: 410px;
 }
 
 #component-tree {
@@ -159,7 +159,6 @@ canvas {
 
 #chosen-component {
   width: 120%;
-  margin-top: 1%;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -168,6 +167,8 @@ canvas {
 
 #chosen-component-name {
   font-weight: bold;
+  margin-top: 15px;
+  font-size: large;
 }
 
 #bottom-working-container {
@@ -201,7 +202,8 @@ canvas {
 }
 
 #transform-title {
-  margin-bottom: 3%;
+  margin-top: 10px;;
+  margin-bottom: 5px;
 }
 
 #obj-tool, #comp-tool {
@@ -245,7 +247,7 @@ canvas {
   display: none;
   position: fixed;
   z-index: 1;
-  padding-top: 80px;
+  padding-top: 3%;
   left: 0;
   top: 0;
   width: 100%;
